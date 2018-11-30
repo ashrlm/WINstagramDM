@@ -6,14 +6,13 @@ class User: #Setup custom user class
         self.api = InstagramAPI(usr_name, password)
         if not self.api.login():
             raise TypeError("Couldn't login")
-        
+            
     def sendMessage(self, target_user, msgText):
         if type(target_user[0]) != 'int':
             target_user = self.api.searchUsername(target_user)
             target_user = self.api.LastJson["user"]["pk"]
         
         target_user = str(target_user)
-        print(type(target_user))
             
         target_user = '[[{}]]'.format(','.join([target_user]))
         url = 'direct_v2/threads/broadcast/text/'
