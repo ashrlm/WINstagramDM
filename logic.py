@@ -5,7 +5,7 @@ class User: #Setup custom user class
         self.name = usr_name
         self.api = InstagramAPI(usr_name, password)
         if not self.api.login():
-            raise TypeError("Couldn't login")
+            raise ValueError("Couldn't login")
             
     def sendMessage(self, target_user, msgText):
         if type(target_user[0]) != 'int':
