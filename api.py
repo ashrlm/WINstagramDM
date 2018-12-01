@@ -1,3 +1,5 @@
+import json
+
 from InstagramAPI import InstagramAPI
 
 class User: #Setup custom user class
@@ -10,7 +12,7 @@ class User: #Setup custom user class
         InstagramAPI.USER_AGENT = 'Instagram 39.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)'
         #Setup custom UA to ensure reading dms allowed
 
-    def sendMessage(self, target_user, msgText):
+    def sendMessage(self, target_user, msgText): #TODO: Error handling if user does not exist
         if type(target_user[0]) != 'int':
             target_user = self.api.searchUsername(target_user)
             target_user = self.api.LastJson["user"]["pk"]
@@ -31,6 +33,10 @@ class User: #Setup custom user class
 
         return self.api.SendRequest(url, data)
 
-    def getMessages(self):
+    def getChats(self):
         self.api.getv2Inbox()
-        print(self.api.LastResponse.content)
+        content = json.loads(self.api.LastResponse.content)
+        return content['inbox']['threads']
+
+    def getMessages(self, chat_id):
+        pass
