@@ -21,9 +21,10 @@ class App:
 
     def __init__(self):
 
-        def attempt_login(usr_name=None, password=None):
-            print(usr_name, password)
-            if None in (usr_name, password):
+        def attempt_login():
+            usr_name = usr_login.get()
+            password = psswd.get()
+            if None in (usr_name, password) or usr_name == "Username" or psswd == "Password":
                 return 1
 
             try:
@@ -47,7 +48,7 @@ class App:
         root = tk.Tk()
 
         usr_login = tk.Entry()
-        usr_login.insert(0, "ashrlm")
+        usr_login.insert(0, "Username")
         usr_login.bind("<Button-1>", clear_entry)
         usr_login.grid(row=0, column=0)
 
@@ -58,8 +59,7 @@ class App:
 
         #Error in below - Entry.get returning default value
         root.bind("<Return>",
-                  lambda event, usr_name=usr_login.get(), psswd=psswd.get():
-                  attempt_login(usr_name=usr_name, password=psswd))
+                  lambda event: attempt_login())
 
         root.mainloop()
 
