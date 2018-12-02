@@ -29,18 +29,30 @@ class App:
 
             try:
                 self.usr = api.User(usr_name, password)
-                quit()
-                root.destroy()
-                App.homepage()
+                root.quit()
+                self.homepage()
 
             except ValueError:
                 return 1
 
         def clear_entry(event):
-            event.widget.delete(0, "end")
+            try:
+                self.usr_name_cleared
+
+            except AttributeError:
+                event.widget.delete(0, "end")
+                self.usr_name_cleared = True
 
         def clear_entry_psswd(event):
-            clear_entry(event)
+            try:
+                self.psswd_cleared
+                event.widget.config(show="*")
+
+            except AttributeError:
+                event.widget.delete(0, "end")
+                self.psswd_cleared = True
+                event.widget.config(show="*")
+
             event.widget.config(show="*")
 
         root = tk.Tk()
@@ -55,7 +67,6 @@ class App:
         psswd.bind("<Button-1>", clear_entry_psswd)
         psswd.grid(column=1, row=0)
 
-        #Error in below - Entry.get returning default value
         root.bind("<Return>",
                   lambda event: attempt_login())
 
