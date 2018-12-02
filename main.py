@@ -14,8 +14,8 @@ class Chat:
     def get_msgs(self, target):
         pass #TODO: get msgs
 
-    def send_msg(self, text):
-        self.usr.api.sendMessage(self.target, text)
+    def send_msg(self):
+        self.usr.api.sendMessage(self.target, text) #TODO: Get variable within method from other class
 
 class App:
 
@@ -29,7 +29,7 @@ class App:
 
             try:
                 self.usr = api.User(usr_name, password)
-                root.quit()
+                self.root.quit()
                 self.homepage()
 
             except ValueError:
@@ -55,7 +55,7 @@ class App:
 
             event.widget.config(show="*")
 
-        root = tk.Tk()
+        self.root = tk.Tk()
 
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
@@ -64,13 +64,13 @@ class App:
 
         psswd = tk.Entry()
         psswd.insert(0, "Password")
-        psswd.bind("<Button-1>", clear_entry_psswd)
+        psswd.bind("<Key>", clear_entry_psswd)
         psswd.grid(column=1, row=0)
 
-        root.bind("<Return>",
+        self.root.bind("<Return>",
                   lambda event: attempt_login())
 
-        root.mainloop()
+        self.root.mainloop()
 
     def get_chats(self):
         pass
@@ -82,16 +82,20 @@ class App:
 
     def convo_run(self, target):
 
-        root = tk.Tk()
+        def get_msg():
+            return msg_in.get()
+
+        self.target = target
+
         chat = Chat(self.usr, target)
 
-        root.bind("<Return>", chat.send_msg) #TODO: Find some way of calling send_msg with these arguments
+        self.root.bind("<Return>", lambda msg=get_msg(): chat.send_msg(msg)) #TODO: Find some way of calling send_msg with these arguments
 
         msg_in = tk.Entry()
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
-        root.mainloop()
+        self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
 
