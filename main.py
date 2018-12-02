@@ -19,9 +19,49 @@ class Chat:
 
 class App:
 
-    def login(self):
-        # TODO: login
-        pass
+    def __init__(self):
+
+        def attempt_login(usr_name=None, password=None):
+            print(usr_name, password)
+            if None in (usr_name, password):
+                return 1
+
+            try:
+                self.usr = api.User(usr_name, password)
+                print(3)
+                quit()
+                root.destroy()
+                App.homepage()
+
+            except ValueError:
+                print(2)
+                return 1
+
+        def clear_entry(event):
+            event.widget.delete(0, "end")
+
+        def clear_entry_psswd(event):
+            clear_entry(event)
+            event.widget.config(show="*")
+
+        root = tk.Tk()
+
+        usr_login = tk.Entry()
+        usr_login.insert(0, "ashrlm")
+        usr_login.bind("<Button-1>", clear_entry)
+        usr_login.grid(row=0, column=0)
+
+        psswd = tk.Entry()
+        psswd.insert(0, "Password")
+        psswd.bind("<Button-1>", clear_entry_psswd)
+        psswd.grid(column=1, row=0)
+
+        #Error in below - Entry.get returning default value
+        root.bind("<Return>",
+                  lambda event, usr_name=usr_login.get(), psswd=psswd.get():
+                  attempt_login(usr_name=usr_name, password=psswd))
+
+        root.mainloop()
 
     def get_chats(self):
         pass
@@ -34,8 +74,9 @@ class App:
     def convo_run(self, target):
 
         root = tk.Tk()
+        chat = Chat(self.usr, target)
 
-        root.bind("<Return>", send_msg) #TODO: Find some way of calling send_msg with these arguments
+        root.bind("<Return>", chat.send_msg) #TODO: Find some way of calling send_msg with these arguments
 
         msg_in = tk.Entry()
         msg_in.pack(side="bottom", fill="x")
@@ -47,8 +88,6 @@ class App:
 
 def main():
     app = App()
-    app.login()
-    app.homepage()
 
 if __name__ == "__main__":
     main()
