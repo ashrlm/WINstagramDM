@@ -29,13 +29,11 @@ class App:
 
             try:
                 self.usr = api.User(usr_name, password)
-                print(3)
                 quit()
                 root.destroy()
                 App.homepage()
 
             except ValueError:
-                print(2)
                 return 1
 
         def clear_entry(event):
