@@ -25,7 +25,7 @@ def main():
             target = input("Target: ")
             text = input("Message Text: ")
             inf = input("Endless: ")
-            if inf != None:
+            if inf:
                 while True:
                     try:
                         delay = int(input("Delay between messages: "))
