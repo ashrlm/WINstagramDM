@@ -15,7 +15,7 @@ class Chat:
         pass #TODO: get msgs
 
     def send_msg(self, text):
-        pass #TODO: Send msg
+        self.usr.api.sendMessage(self.target, text)
 
 class App:
 
