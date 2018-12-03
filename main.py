@@ -33,7 +33,7 @@ class App:
                 self.homepage()
 
             except ValueError:
-                clear_entry_psswd()
+                psswd.delete(0, "end")
 
         def clear_entry(event):
             try:
