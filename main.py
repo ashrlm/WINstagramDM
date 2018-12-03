@@ -73,7 +73,7 @@ class App:
         self.root.mainloop()
 
     def get_chats(self):
-        pass
+        return self.usr.api.getMessages()
 
     def homepage(self):
         # TODO: Get list of chats, pfps, and last message, and display neatly
