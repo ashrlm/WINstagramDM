@@ -33,7 +33,7 @@ class App:
                 self.homepage()
 
             except ValueError:
-                return 1
+                clear_entry_psswd()
 
         def clear_entry(event):
             try:
@@ -56,17 +56,51 @@ class App:
             event.widget.config(show="*")
 
         self.root = tk.Tk()
+        self.root.title("WINstagram - Login")
+        self.root.geometry(newGeometry=("500x500"))
+        self.root.minsize(500, 500)
+        self.root.maxsize(500, 500)
+        self.root.update()
 
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
         usr_login.bind("<Button-1>", clear_entry)
-        usr_login.grid(row=0, column=0)
+        usr_login.bind("<Key>", clear_entry)
+        usr_login.place(relx=.5, rely=.475, anchor="center")
 
         psswd = tk.Entry()
         psswd.insert(0, "Password")
+        psswd.bind("<Button-1>", clear_entry_psswd)
         psswd.bind("<Key>", clear_entry_psswd)
-        psswd.grid(column=1, row=0)
+        psswd.place(relx=.5, rely=.525, anchor="center")
 
+        login = tk.Button()
+        login["text"] = "Login"
+        login.bind("<Button-1>",
+                    lambda event: attempt_login())
+        login.bind("<Key>",
+                    lambda event: attempt_login())
+        login.place(relx=.5, rely=.5815, anchor="center")
+
+        #Styling
+        font = ("Helvetica", 13)
+        self.root.configure(background="#000")
+        usr_login.configure(
+                            background="#222",
+                            fg="#ddd",
+                            bd=0,
+                            font=font)
+        psswd.configure(background="#222",
+                        fg="#ddd",
+                        bd=0,
+                        font=font)
+        login.configure(background="#222",
+                        fg="#ddd",
+                        bd=0,
+                        font=font)
+
+
+        #Binding for login
         self.root.bind("<Return>",
                   lambda event: attempt_login())
 
