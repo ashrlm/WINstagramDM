@@ -29,7 +29,7 @@ class App:
 
             try:
                 self.usr = api.User(usr_name, password)
-                self.root.quit()
+                root.destroy()
                 self.homepage()
 
             except ValueError:
@@ -55,12 +55,12 @@ class App:
 
             event.widget.config(show="*")
 
-        self.root = tk.Tk()
-        self.root.title("WINstagram - Login")
-        self.root.geometry(newGeometry=("500x500"))
-        self.root.minsize(500, 500)
-        self.root.maxsize(500, 500)
-        self.root.update()
+        root = tk.Tk()
+        root.title("WINstagram - Login")
+        root.geometry(newGeometry=("500x500"))
+        root.minsize(500, 500)
+        root.maxsize(500, 500)
+        root.update()
 
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
@@ -84,7 +84,7 @@ class App:
 
         #Styling
         font = ("Helvetica", 13)
-        self.root.configure(background="#000")
+        root.configure(background="#000")
         usr_login.configure(
                             background="#222",
                             fg="#ddd",
@@ -101,10 +101,11 @@ class App:
 
 
         #Binding for login
-        self.root.bind("<Return>",
+        root.bind("<Return>",
                   lambda event: attempt_login())
 
-        self.root.mainloop()
+        root.mainloop()
+        self.homepage()
 
     def get_chats(self):
         return self.usr.api.getMessages()
@@ -116,6 +117,8 @@ class App:
 
     def convo_run(self, target):
 
+        root = tk.Tk()
+
         def get_msg():
             return msg_in.get()
 
@@ -123,13 +126,13 @@ class App:
 
         chat = Chat(self.usr, target)
 
-        self.root.bind("<Return>", lambda msg=get_msg(): chat.send_msg(msg)) #TODO: Find some way of calling send_msg with these arguments
+        root.bind("<Return>", lambda msg=get_msg(): chat.send_msg(msg)) #TODO: Find some way of calling send_msg with these arguments
 
         msg_in = tk.Entry()
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
-        self.root.mainloop()
+        root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
 
