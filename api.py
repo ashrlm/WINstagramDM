@@ -51,12 +51,14 @@ class User: #Setup custom user class
         for user in thread["users"]:
             users[user["pk"]] = user["username"]
 
-        items = [] #List of dict(UID: Item text)
+        items = [] #List of dict(UID: Item data)
 
         for item in thread["items"]:
             type = item["item_type"]
             if type == "text":
-                items.append({item["user_id"]: item["text"]})
+                items.append({item["user_id"]:
+                             {"text": item["text"],
+                              "time": item["timestamp"]}})
 
         items = items[::-1] #Reverse for proper order
 
