@@ -45,6 +45,10 @@ class App:
             login.config(state="normal")
             psswd.delete(0, "end")
             root.title("Winstagram - Login")
+            #Setup ateempt_login thread
+            self.login_thread = threading.Thread(target=attempt_login)
+            self.login_thread.daemon = True
+
 
         def clear_entry(event):
             try:
@@ -75,8 +79,8 @@ class App:
         root.update()
 
         #Setup ateempt_login thread
-        login_thread = threading.Thread(target=attempt_login)
-        login_thread.daemon = True
+        self.login_thread = threading.Thread(target=attempt_login)
+        self.login_thread.daemon = True
 
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
@@ -93,9 +97,9 @@ class App:
         login = tk.Button()
         login["text"] = "Login"
         login.bind("<Button-1>",
-                    lambda event: login_thread.start())
+                    lambda event: self.login_thread.start())
         login.bind("<Key>",
-                    lambda event: login_thread.start())
+                    lambda event: self.login_thread.start())
         login.place(relx=.5, rely=.5815, anchor="center")
 
         #Styling
@@ -118,7 +122,7 @@ class App:
 
         #Binding for login
         root.bind("<Return>",
-                  lambda event: login_thread.start())
+                  lambda event: self.login_thread.start())
 
         root.mainloop()
         self.homepage()
