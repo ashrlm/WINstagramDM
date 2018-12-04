@@ -11,11 +11,11 @@ class User: #Setup custom user class
         if not self.api.login():
             raise ValueError("Couldn't login")
 
-        InstagramAPI.USER_AGENT = 'Instagram 39.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)'
+        InstagramAPI.USER_AGENT = "Instagram 39.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)"
         #Setup custom UA to ensure reading dms allowed
 
     def sendMessage(self, target_user, msgText):
-        if type(target_user[0]) != 'int':
+        if type(target_user[0]) != "int":
             target_user = self.api.searchUsername(target_user)
             try:
                 target_user = self.api.LastJson["user"]["pk"]
@@ -24,24 +24,40 @@ class User: #Setup custom user class
 
         target_user = str(target_user)
 
-        target_user = '[[{}]]'.format(','.join([target_user]))
-        url = 'direct_v2/threads/broadcast/text/'
+        target_user = "[[{}]]".format(",".join([target_user]))
+        url = "direct_v2/threads/broadcast/text/"
 
         data = {
-            'text': msgText,
-            '_uuid': self.api.uuid,
-            '_csrftoken': self.api.token,
-            'recipient_users': target_user,
-            '_uid': self.api.username_id,
-            'action': 'send_item',
-            'client_context': self.api.generateUUID(True)}
+            "text": msgText,
+            "_uuid": self.api.uuid,
+            "_csrftoken": self.api.token,
+            "recipient_users": target_user,
+            "_uid": self.api.username_id,
+            "action": "send_item",
+            "client_context": self.api.generateUUID(True)}
 
         return self.api.SendRequest(url, data)
 
     def getChats(self):
         self.api.getv2Inbox()
         content = json.loads(self.api.LastResponse.content)
-        return content['inbox']['threads']
+        return content["inbox"]["threads"]
 
     def getMessages(self, chat_id):
-        pass
+        self.api.getv2Threads(str(chat_id))
+        thread = json.loads(json.dumps(self.api.LastJson))["thread"]
+
+        users = {self.api.username_id: self.name} #Get list of people - initialize with self included
+        for user in thread["users"]:
+            users[user["pk"]] = user["username"]
+
+        items = [] #List of dict(UID: Item text)
+
+        for item in thread["items"]:
+            type = item["item_type"]
+            if type == "text":
+                items.append({item["user_id"]: item["text"]})
+
+        items = items[::-1] #Reverse for proper order
+
+        return items
