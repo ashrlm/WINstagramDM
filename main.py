@@ -30,8 +30,6 @@ class App:
             usr_login.config(state="disabled")
             psswd.config(state="disabled")
             login.config(state="disabled")
-            if None in (usr_name, password) or usr_name == "Username" or psswd == "Password":
-                psswd.delete(0, "end")
 
             try:
                 self.usr = api.User(usr_name, password)
