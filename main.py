@@ -30,7 +30,6 @@ class App:
             try:
                 self.usr = api.User(usr_name, password)
                 root.destroy()
-                self.homepage()
 
             except ValueError:
                 psswd.delete(0, "end")
@@ -107,31 +106,33 @@ class App:
         root.mainloop()
         self.homepage()
 
-    def get_chats(self):
-        return self.usr.api.getMessages()
-
     def homepage(self):
-        # TODO: Get list of chats, pfps, and last message, and display neatly
-        # TOOD: Use each chat as a button that calls convo_run()
-        pass
+
+        def get_chats(self):
+            return self.usr.api.getChats()
+
+        #TODO: get chats/imgs as buttons in scrollable list
 
     def convo_run(self, target):
 
         root = tk.Tk()
 
-        def get_msg():
+        def get_msg_entry(): #Used for getting from entry
             return msg_in.get()
+
+        def get_msgs(): #USed for getting messages in chat
+            self.usr.api.getMessages()
 
         self.target = target
 
         chat = Chat(self.usr, target)
 
-        root.bind("<Return>", lambda msg=get_msg(): chat.send_msg(msg)) #TODO: Find some way of calling send_msg with these arguments
-
         msg_in = tk.Entry()
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
+        #Send msg binding
+        root.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
         root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
