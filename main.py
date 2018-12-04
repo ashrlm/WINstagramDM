@@ -56,7 +56,8 @@ class App:
 
         root = tk.Tk()
         root.title("WINstagram - Login")
-        root.geometry(newGeometry=("500x500"))
+        root.wm_iconbitmap('logo.ico')
+        root.geometry(newGeometry=("500x500")) #Sizing
         root.minsize(500, 500)
         root.maxsize(500, 500)
         root.update()
