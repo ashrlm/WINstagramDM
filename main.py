@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import threading
 import tkinter as tk
 
 import api
@@ -22,10 +23,14 @@ class App:
     def __init__(self):
 
         def attempt_login():
+            root.title("Winstagram - Logging in")
             usr_name = usr_login.get()
             password = psswd.get()
+            #disable editing while logging in
+            usr_login.config(state="disabled")
+            psswd.config(state="disabled")
             if None in (usr_name, password) or usr_name == "Username" or psswd == "Password":
-                return 1
+                psswd.delete(0, "end")
 
             try:
                 self.usr = api.User(usr_name, password)
@@ -62,6 +67,10 @@ class App:
         root.maxsize(500, 500)
         root.update()
 
+        #Setup ateempt_login thread
+        login_thread = threading.Thread(target=attempt_login)
+        login_thread.daemon = True
+
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
         usr_login.bind("<Button-1>", clear_entry)
@@ -77,9 +86,9 @@ class App:
         login = tk.Button()
         login["text"] = "Login"
         login.bind("<Button-1>",
-                    lambda event: attempt_login())
+                    lambda event: login_thread.start())
         login.bind("<Key>",
-                    lambda event: attempt_login())
+                    lambda event: login_thread.start())
         login.place(relx=.5, rely=.5815, anchor="center")
 
         #Styling
@@ -102,7 +111,7 @@ class App:
 
         #Binding for login
         root.bind("<Return>",
-                  lambda event: attempt_login())
+                  lambda event: login_thread.start())
 
         root.mainloop()
         self.homepage()
