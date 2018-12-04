@@ -29,6 +29,7 @@ class App:
             #disable editing while logging in
             usr_login.config(state="disabled")
             psswd.config(state="disabled")
+            login.config(state="disabled")
             if None in (usr_name, password) or usr_name == "Username" or psswd == "Password":
                 psswd.delete(0, "end")
 
@@ -38,6 +39,12 @@ class App:
 
             except ValueError:
                 psswd.delete(0, "end")
+
+            usr_login.config(state="normal")
+            psswd.config(state="normal")
+            login.config(state="normal")
+            psswd.delete(0, "end")
+            root.title("Winstagram - Login")
 
         def clear_entry(event):
             try:
