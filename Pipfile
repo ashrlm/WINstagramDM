@@ -5,8 +5,9 @@ name = "pypi"
 
 [packages]
 pygame = "*"
-instagramapi = "*"
 moviepy = "*"
+instagramapi = "*"
+instagram-api-python = {editable = true,git = "https://github.com/ashrlm/Instagram-API-python"}
 
 [dev-packages]
 
