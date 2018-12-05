@@ -7,13 +7,21 @@ import api
 
 class Chat:
 
-    def __init__(self, usr, target):
-        self.usr = usr
-        self.target = target
-        self.prev_msg = None #Last message you read - Used for highlighting
+    def __init__(self, app, threadId):
+        self.usr = app.usr
+        self.threadId = threadId
+        self.app = app
+        self.last_msgs = None #Last message you read - Used for highlighting
 
-    def get_msgs(self, target):
-        pass #TODO: get msgs
+    def get_msgs(self):
+        msgs = self.usr.getMessages(threadId)
+        if msgs != last_msgs:
+            new_msgs = {}
+            for msg in msgs:
+                if msg not in last_msgs:
+                    new_msgs.append(msg)
+
+            self.app.update_msgs(new_msgs)
 
     def send_msg(self):
         self.usr.api.sendMessage(self.target, text) #TODO: Get variable within method from other class
