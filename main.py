@@ -153,7 +153,6 @@ class App:
             response = requests.get(chat["thread_icon"])
             if response.status_code == 200: #Check image received ok
                 tmp_img = Image.open(BytesIO(response.content))
-                images.append(tmp_img)
                 image = ImageTk.PhotoImage(tmp_img)
 
                 chat_button = tk.Button(
