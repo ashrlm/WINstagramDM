@@ -48,7 +48,8 @@ class User: #Setup custom user class
         for chat in content:
             chats.append({
                 "thread_name": chat["thread_title"],
-                "thread_id"  : chat["thread_id"]
+                "thread_id"  : chat["thread_id"],
+                "thread_icon": chat["users"][0]["profile_pic_url"]
             })
 
         return chats
