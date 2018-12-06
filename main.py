@@ -110,13 +110,9 @@ class App:
                     lambda event: self.login_thread.start())
         psswd.place(relx=.5, rely=.525, anchor="center")
 
-        login = tk.Button()
+        login = tk.Button(command=lambda: self.login_thread.start())
         login["text"] = "Login"
-        login.bind("<Button-1>",
-                    lambda event: self.login_thread.start())
-        login.bind("<Key>",
-                    lambda event: self.login_thread.start())
-        login.place(relx=.5, rely=.5815, anchor="center")
+        login.place(relx=.44, rely=.555)
 
         #Styling
         font = ("Helvetica", 13)
