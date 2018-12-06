@@ -21,8 +21,8 @@ class Chat:
                 if msg not in self.last_msgs:
                     new_msgs.append(msg)
 
-            self.last_msgs = msgs
-            self.app.update_msgs(new_msgs)
+            self.pending_msgs = new_msgs
+            self.last_msgs = self.last_msgs + new_msgs
 
     def send_msg(self):
         self.usr.api.sendMessage(self.target, text) #TODO: Get variable within method from other class
@@ -32,7 +32,7 @@ class App:
     def __init__(self):
 
         def attempt_login():
-            root.title("Winstagram - Logging in")
+            root.title("WinstagramDM - Logging in")
             usr_name = usr_login.get()
             password = psswd.get()
             #disable editing while logging in
@@ -53,7 +53,7 @@ class App:
                 psswd.config(state="normal")
                 login.config(state="normal")
                 psswd.delete(0, "end")
-                root.title("Winstagram - Login")
+                root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
                 return 1
@@ -79,7 +79,7 @@ class App:
             event.widget.config(show="*")
 
         root = tk.Tk()
-        root.title("WINstagram - Login")
+        root.title("WinstagramDM - Login")
         root.wm_iconbitmap('icon.ico')
         root.geometry(newGeometry=("500x500")) #Sizing
         root.minsize(500, 500)
@@ -137,15 +137,26 @@ class App:
 
     def homepage(self):
 
-        def get_chats(self):
-            return self.usr.api.getChats()
+        def get_chats():
+            return self.usr.getChats()
 
         root = tk.Tk()
-        root.title("WINstagram - Login")
+        root.title("WinstagramDM - Homepage")
         root.wm_iconbitmap('icon.ico')
         root.geometry(newGeometry=("500x500")) #Sizing
         root.minsize(500, 500)
         root.update()
+
+        #setup messages
+        for chat in get_chats():
+            chat_button = tk.Button(
+                root,
+                compound=tk.LEFT,
+                image=None, #TODO: Read image from url
+                text=chat["thread_name"],
+                command=lambda: self.convo_run(chat["thread_id"]))
+
+            chat_button.pack(fill=tk.X)
 
         root.mainloop()
 
@@ -156,8 +167,9 @@ class App:
         def get_msg_entry(): #Used for getting from entry
             return msg_in.get()
 
-        def update_msgs(msgs):
-            pass
+        def update_msgs():
+            #TODO: Update msgs
+            root.after(500, update_msgs())
 
         root = tk.Tk()
 
@@ -174,6 +186,7 @@ class App:
         #Bindings
         root.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
 
+        root.after(500, update_msgs)
         root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
