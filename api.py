@@ -43,8 +43,15 @@ class User: #Setup custom user class
 
     def getChats(self):
         self.api.getv2Inbox()
-        content = json.loads(self.api.LastResponse.content)
-        return content["inbox"]["threads"]
+        content = json.loads(self.api.LastResponse.content)["inbox"]["threads"]
+        chats = []
+        for chat in content:
+            chats.append({
+                "thread_name": chat["thread_title"],
+                "thread_id"  : chat["thread_id"]
+            })
+
+        return chats
 
     def getMessages(self, chat_id):
         self.api.getv2Threads(str(chat_id))
