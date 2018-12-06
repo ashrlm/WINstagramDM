@@ -2,7 +2,10 @@
 
 import json
 
+import imageio
 from InstagramAPI import InstagramAPI
+
+imageio.plugins.ffmpeg.download() #Ensure installed
 
 class User: #Setup custom user class
     def __init__(self, usr_name, password):
