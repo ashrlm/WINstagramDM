@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import threading
+import sys
 import tkinter as tk
 import requests
 from io import BytesIO
@@ -137,12 +138,10 @@ class App:
     def homepage(self):
 
         #TODO: Thread getChats to prevent blocking - Push threaded result to queue, which is
-        #      checked by main thread using .after 
+        #      checked by main thread using .after
 
         self.root.title("WinstagramDM - Homepage")
-        self.root.wm_iconbitmap('icon.ico')
-        self.root.geometry(newGeometry=("500x500")) #Sizing
-        self.root.minsize(500, 500)
+        self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
         #setup messages
@@ -153,6 +152,7 @@ class App:
             response = requests.get(chat["thread_icon"])
             if response.status_code == 200: #Check image received ok
                 tmp_img = Image.open(BytesIO(response.content))
+                tmp_img = tmp_img.resize((50, 50))
                 image = ImageTk.PhotoImage(tmp_img)
 
                 chat_button = tk.Button(
