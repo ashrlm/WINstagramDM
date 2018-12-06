@@ -2,6 +2,10 @@
 
 import threading
 import tkinter as tk
+import requests
+from io import BytesIO
+
+from PIL import Image, ImageTk
 
 import api
 
@@ -14,7 +18,7 @@ class Chat:
         self.last_msgs = None #Last message you read - Used for highlighting
 
     def get_msgs(self):
-        msgs = self.usr.getMessages(threadId)
+        msgs = self.usr.getMessages(app.threadId)
         if msgs != self.last_msgs:
             new_msgs = self.last_msgs
             for msg in msgs:
@@ -32,7 +36,7 @@ class App:
     def __init__(self):
 
         def attempt_login():
-            root.title("WinstagramDM - Logging in")
+            self.root.title("WinstagramDM - Logging in")
             usr_name = usr_login.get()
             password = psswd.get()
             #disable editing while logging in
@@ -42,7 +46,7 @@ class App:
 
             try:
                 self.usr = api.User(usr_name, password)
-                root.destroy()
+                self.root.quit()
                 self.logged_in = True
 
             except ValueError:
@@ -53,7 +57,7 @@ class App:
                 psswd.config(state="normal")
                 login.config(state="normal")
                 psswd.delete(0, "end")
-                root.title("WinstagramDM - Login")
+                self.root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
                 return 1
@@ -78,13 +82,13 @@ class App:
 
             event.widget.config(show="*")
 
-        root = tk.Tk()
-        root.title("WinstagramDM - Login")
-        root.wm_iconbitmap('icon.ico')
-        root.geometry(newGeometry=("500x500")) #Sizing
-        root.minsize(500, 500)
-        root.maxsize(500, 500)
-        root.update()
+        self.root = tk.Tk()
+        self.root.title("WinstagramDM - Login")
+        self.root.wm_iconbitmap('icon.ico')
+        self.root.geometry(newGeometry=("500x500")) #Sizing
+        self.root.minsize(500, 500)
+        self.root.maxsize(500, 500)
+        self.root.update()
 
         #Setup attempt_login thread
         self.login_thread = threading.Thread(target=attempt_login)
@@ -94,12 +98,16 @@ class App:
         usr_login.insert(0, "Username")
         usr_login.bind("<Button-1>", clear_entry)
         usr_login.bind("<Key>", clear_entry)
+        usr_login.bind("<Return>",
+                    lambda event: self.login_thread.start())
         usr_login.place(relx=.5, rely=.475, anchor="center")
 
         psswd = tk.Entry()
         psswd.insert(0, "Password")
         psswd.bind("<Button-1>", clear_entry_psswd)
         psswd.bind("<Key>", clear_entry_psswd)
+        psswd.bind("<Return>",
+                    lambda event: self.login_thread.start())
         psswd.place(relx=.5, rely=.525, anchor="center")
 
         login = tk.Button()
@@ -112,7 +120,7 @@ class App:
 
         #Styling
         font = ("Helvetica", 13)
-        root.configure(background="#000")
+        self.root.configure(background="#000")
         usr_login.configure(
                             background="#222",
                             fg="#ddd",
@@ -127,38 +135,50 @@ class App:
                         bd=0,
                         font=font)
 
-
-        #Binding for login
-        root.bind("<Return>",
-                  lambda event: self.login_thread.start())
-
-        root.mainloop()
+        self.root.mainloop()
         self.homepage()
 
     def homepage(self):
 
-        def get_chats():
-            return self.usr.getChats()
+        #TODO: Thread getChats to prevent blocking - Push threaded result to queue, which is
+        #      checked by main thread using .after 
 
-        root = tk.Tk()
-        root.title("WinstagramDM - Homepage")
-        root.wm_iconbitmap('icon.ico')
-        root.geometry(newGeometry=("500x500")) #Sizing
-        root.minsize(500, 500)
-        root.update()
+        self.root.title("WinstagramDM - Homepage")
+        self.root.wm_iconbitmap('icon.ico')
+        self.root.geometry(newGeometry=("500x500")) #Sizing
+        self.root.minsize(500, 500)
+        self.root.update()
 
         #setup messages
-        for chat in get_chats():
-            chat_button = tk.Button(
-                root,
-                compound=tk.LEFT,
-                image=None, #TODO: Read image from url
-                text=chat["thread_name"],
-                command=lambda: self.convo_run(chat["thread_id"]))
+        # TODO: Use scrollbar
+
+        for chat in self.usr.getChats():
+            #Get thread icon
+            response = requests.get(chat["thread_icon"])
+            if response.status_code == 200: #Check image received ok
+                tmp_img = Image.open(BytesIO(response.content))
+                images.append(tmp_img)
+                image = ImageTk.PhotoImage(tmp_img)
+
+                chat_button = tk.Button(
+                    self.root,
+                    text=chat["thread_name"],
+                    command=lambda: self.convo_run(chat["thread_id"]))
+
+                chat_button.image = image
+                chat_button.config(compound=tk.LEFT,
+                                   image=image,
+                                   anchor=tk.W)
+
+            else:
+                chat_button = tk.Button(
+                    self.root,
+                    text=chat["thread_name"],
+                    command=lambda: self.convo_run(chat["thread_id"]))
 
             chat_button.pack(fill=tk.X)
 
-        root.mainloop()
+        self.root.mainloop()
 
         #TODO: get chats/imgs as buttons in scrollable list
 
@@ -169,9 +189,9 @@ class App:
 
         def update_msgs():
             #TODO: Update msgs
-            root.after(500, update_msgs())
+            self.root.after(500, update_msgs())
 
-        root = tk.Tk()
+        self.root = tk.Tk()
 
         chat = Chat(self, threadId)
 
@@ -184,10 +204,10 @@ class App:
         get_msg_thread.start()
 
         #Bindings
-        root.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
+        msg_in.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
 
-        root.after(500, update_msgs)
-        root.mainloop()
+        self.root.after(500, update_msgs)
+        self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
 
