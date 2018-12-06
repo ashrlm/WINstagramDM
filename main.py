@@ -42,19 +42,20 @@ class App:
             try:
                 self.usr = api.User(usr_name, password)
                 root.destroy()
+                self.logged_in = True
 
             except ValueError:
                 psswd.delete(0, "end")
 
-            usr_login.config(state="normal")
-            psswd.config(state="normal")
-            login.config(state="normal")
-            psswd.delete(0, "end")
-            root.title("Winstagram - Login")
-            #Setup ateempt_login thread
-            self.login_thread = threading.Thread(target=attempt_login)
-            self.login_thread.daemon = True
-
+            if not self.logged_in:
+                usr_login.config(state="normal")
+                psswd.config(state="normal")
+                login.config(state="normal")
+                psswd.delete(0, "end")
+                root.title("Winstagram - Login")
+                #Resetup login thread to allow rerun
+                self.login_thread = threading.Thread(target=attempt_login)
+                return 1
 
         def clear_entry(event):
             try:
@@ -78,15 +79,15 @@ class App:
 
         root = tk.Tk()
         root.title("WINstagram - Login")
-        root.wm_iconbitmap('logo.ico')
+        root.wm_iconbitmap('icon.ico')
         root.geometry(newGeometry=("500x500")) #Sizing
         root.minsize(500, 500)
         root.maxsize(500, 500)
         root.update()
 
-        #Setup ateempt_login thread
+        #Setup attempt_login thread
         self.login_thread = threading.Thread(target=attempt_login)
-        self.login_thread.daemon = True
+        self.logged_in = False
 
         usr_login = tk.Entry()
         usr_login.insert(0, "Username")
@@ -138,28 +139,40 @@ class App:
         def get_chats(self):
             return self.usr.api.getChats()
 
+        root = tk.Tk()
+        root.title("WINstagram - Login")
+        root.wm_iconbitmap('icon.ico')
+        root.geometry(newGeometry=("500x500")) #Sizing
+        root.minsize(500, 500)
+        root.update()
+
+        root.mainloop()
+
         #TODO: get chats/imgs as buttons in scrollable list
 
-    def convo_run(self, target):
-
-        root = tk.Tk()
+    def convo_run(self, threadId):
 
         def get_msg_entry(): #Used for getting from entry
             return msg_in.get()
 
-        def get_msgs(): #USed for getting messages in chat
-            self.usr.api.getMessages()
+        def update_msgs(msgs):
+            pass
 
-        self.target = target
+        root = tk.Tk()
 
-        chat = Chat(self.usr, target)
+        chat = Chat(self, threadId)
 
         msg_in = tk.Entry()
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
-        #Send msg binding
+        #Thread setup
+        get_msg_thread = threading.Thread(target=chat.get_msgs())
+        get_msg_thread.start()
+
+        #Bindings
         root.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
+
         root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
