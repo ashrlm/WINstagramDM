@@ -15,12 +15,13 @@ class Chat:
 
     def get_msgs(self):
         msgs = self.usr.getMessages(threadId)
-        if msgs != last_msgs:
-            new_msgs = {}
+        if msgs != self.last_msgs:
+            new_msgs = self.last_msgs
             for msg in msgs:
-                if msg not in last_msgs:
+                if msg not in self.last_msgs:
                     new_msgs.append(msg)
 
+            self.last_msgs = msgs
             self.app.update_msgs(new_msgs)
 
     def send_msg(self):
