@@ -135,6 +135,10 @@ class App:
                         font=font)
 
         self.root.mainloop()
+        #Clear icons
+        usr_login.place_forget()
+        psswd.place_forget()
+        login.place_forget()
         self.homepage()
 
     def homepage(self):
