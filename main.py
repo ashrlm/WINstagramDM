@@ -83,6 +83,8 @@ class App:
 
             event.widget.config(show="*")
 
+        self.location = "login"
+
         self.root = tk.Tk()
         self.root.title("WinstagramDM - Login")
         self.root.wm_iconbitmap('icon.ico')
@@ -140,51 +142,77 @@ class App:
         #TODO: Thread getChats to prevent blocking - Push threaded result to queue, which is
         #      checked by main thread using .after
 
+        def getChats():
+            chats = []
+            while True:
+
+                if self.location != "homepage":
+                    break
+
+                new_chats = self.usr.getChats()
+
+                if new_chats != chats:
+                    chats = new_chats
+                    self.pending_chats = []
+                    for chat in new_chats:
+                        #Get thread icon
+                        response = requests.get(chat["thread_icon"])
+                        font = ("Helvetica", 10)
+
+                        if response.status_code == 200: #Check image received ok
+                            tmp_win = tk.Tk()
+                            tmp_img = Image.open(BytesIO(response.content))
+                            tmp_img = tmp_img.resize((50, 50))
+                            #Generate mask for circularising image
+                            mask = Image.new("L", (50, 50), 0)
+                            draw = ImageDraw.Draw(mask)
+                            draw.ellipse((0, 0) + mask.size, fill=255)
+                            tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
+                            tmp_img.putalpha(mask)
+                            image = ImageTk.PhotoImage(tmp_img)
+
+                            chat_button = tk.Button(
+                                self.root,
+                                text='    ' + chat["thread_name"],
+                                command=lambda: self.convo_run(chat["thread_id"]),
+                                font=font)
+
+                            chat_button.image = image
+                            chat_button.config(compound=tk.LEFT,
+                                               image=image,
+                                               anchor=tk.W)
+
+                        else:
+                            chat_button = tk.Button(
+                                self.root,
+                                text='    ' + chat["thread_name"],
+                                command=lambda: self.convo_run(chat["thread_id"]))
+
+                        self.pending_chats.append(chat_button)
+
+        def update_chats():
+            # BUG: When going to home page, chats are loaded one at a time, and with considerable delay, but this should be for all soon after each other
+            try:
+                for chat_button in self.pending_chats:
+                    chat_button.pack(fill=tk.X)
+            except AttributeError:
+                pass
+
+            self.root.after(1000, update_chats)
+
+        self.location = "homepage" #Used for checking in threads
+
+        #Setup window
         self.root.title("WinstagramDM - Homepage")
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
-        #setup messages
+        getChatsThread = threading.Thread(target=getChats)
+        getChatsThread.start()
+
         # TODO: Use scrollbar
-
-        for chat in self.usr.getChats():
-            #Get thread icon
-            response = requests.get(chat["thread_icon"])
-            font = ("Helvetica", 10)
-
-            if response.status_code == 200: #Check image received ok
-                tmp_img = Image.open(BytesIO(response.content))
-                tmp_img = tmp_img.resize((50, 50))
-                #Generate mask for circularising image
-                mask = Image.new("L", (50, 50), 0)
-                draw = ImageDraw.Draw(mask)
-                draw.ellipse((0, 0) + mask.size, fill=255)
-                tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
-                tmp_img.putalpha(mask)
-                image = ImageTk.PhotoImage(tmp_img)
-
-                chat_button = tk.Button(
-                    self.root,
-                    text='    ' + chat["thread_name"],
-                    command=lambda: self.convo_run(chat["thread_id"]),
-                    font=font)
-
-                chat_button.image = image
-                chat_button.config(compound=tk.LEFT,
-                                   image=image,
-                                   anchor=tk.W)
-
-            else:
-                chat_button = tk.Button(
-                    self.root,
-                    text='    ' + chat["thread_name"],
-                    command=lambda: self.convo_run(chat["thread_id"]))
-
-            chat_button.pack(fill=tk.X)
-
+        self.root.after(0, update_chats) #update chat initial run
         self.root.mainloop()
-
-        #TODO: get chats/imgs as buttons in scrollable list
 
     def convo_run(self, threadId):
 

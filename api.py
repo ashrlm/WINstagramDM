@@ -42,6 +42,7 @@ class User: #Setup custom user class
         return self.api.SendRequest(url, data)
 
     def getChats(self):
+        #TODO: Find some way of checking if thread is unread
         self.api.getv2Inbox()
         content = json.loads(self.api.LastResponse.content)["inbox"]["threads"]
         chats = []
