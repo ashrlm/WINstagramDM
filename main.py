@@ -6,7 +6,7 @@ import tkinter as tk
 import requests
 from io import BytesIO
 
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps, ImageDraw
 
 import api
 
@@ -150,15 +150,24 @@ class App:
         for chat in self.usr.getChats():
             #Get thread icon
             response = requests.get(chat["thread_icon"])
+            font = ("Helvetica", 10)
+
             if response.status_code == 200: #Check image received ok
                 tmp_img = Image.open(BytesIO(response.content))
                 tmp_img = tmp_img.resize((50, 50))
+                #Generate mask for circularising image
+                mask = Image.new("L", (50, 50), 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0) + mask.size, fill=255)
+                tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
+                tmp_img.putalpha(mask)
                 image = ImageTk.PhotoImage(tmp_img)
 
                 chat_button = tk.Button(
                     self.root,
-                    text=chat["thread_name"],
-                    command=lambda: self.convo_run(chat["thread_id"]))
+                    text='    ' + chat["thread_name"],
+                    command=lambda: self.convo_run(chat["thread_id"]),
+                    font=font)
 
                 chat_button.image = image
                 chat_button.config(compound=tk.LEFT,
@@ -168,7 +177,7 @@ class App:
             else:
                 chat_button = tk.Button(
                     self.root,
-                    text=chat["thread_name"],
+                    text='    ' + chat["thread_name"],
                     command=lambda: self.convo_run(chat["thread_id"]))
 
             chat_button.pack(fill=tk.X)
