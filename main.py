@@ -177,20 +177,32 @@ class App:
 
                             chat_button = tk.Button(
                                 self.root,
-                                text='    ' + chat["thread_name"],
+                                text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
                                 command=lambda: self.convo_run(chat["thread_id"]),
                                 font=font)
 
                             chat_button.image = image
                             chat_button.config(compound=tk.LEFT,
                                                image=image,
-                                               anchor=tk.W)
+                                               anchor=tk.W,
+                                               bd=1,
+                                               highlightbackground="#333",
+                                               bg="#111",
+                                               fg="#ccc")
 
                         else:
                             chat_button = tk.Button(
                                 self.root,
                                 text='    ' + chat["thread_name"],
                                 command=lambda: self.convo_run(chat["thread_id"]))
+
+                            chat_button.config(
+                                bd=1,
+                                anchor=tk.W,
+                                highlightbackground="#333",
+                                bg="#111",
+                                fg="#ccc"
+                            )
 
                         self.pending_chats.append(chat_button)
 
