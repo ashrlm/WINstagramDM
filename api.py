@@ -18,6 +18,7 @@ class User: #Setup custom user class
         #Setup custom UA to ensure reading dms allowed
 
     def sendMessage(self, target_user, msgText):
+        #TODO: loop over target_user generating list of uids
         if type(target_user[0]) != "int":
             target_user = self.api.searchUsername(target_user)
             try:
@@ -47,9 +48,14 @@ class User: #Setup custom user class
         content = json.loads(self.api.LastResponse.content)["inbox"]["threads"]
         chats = []
         for chat in content:
+            users = []
+            for user in chat["users"]:
+                users.append(user["username"])
+
             chats.append({
                 "thread_name": chat["thread_title"],
                 "thread_id"  : chat["thread_id"],
+                "users"      : users,
                 "thread_icon": chat["users"][0]["profile_pic_url"]
             })
 
