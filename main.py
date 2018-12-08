@@ -34,7 +34,6 @@ class Chat:
     def send_msg(self):
         #Get text/clear Entry
         msg = self.entry.get()
-        #TODO: Send message by thread id
         self.usr.sendMessage(self.users[0], msg) #Only send to usr
         #Reset thread
         self.send_msg_thread = threading.Thread(target=self.send_msg)
@@ -153,8 +152,6 @@ class App:
 
     def homepage(self):
 
-        #BUG: Chats displayed not showing correct user
-
         def getChats():
             chats = []
             while True:
@@ -165,7 +162,6 @@ class App:
                 new_chats = self.usr.getChats()
 
                 if new_chats != chats:
-                    chats = new_chats
                     self.pending_chats = []
                     for chat in new_chats:
                         #Get thread icon
@@ -184,14 +180,14 @@ class App:
                             tmp_img.putalpha(mask)
                             image = ImageTk.PhotoImage(tmp_img)
 
-                            chat_button = tk.Button(
+                            self.pending_chats.append(tk.Button(
                                 self.root,
                                 text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
-                                command=lambda: self.convo_run(chat["thread_id"], chat["users"]),
-                                font=font)
+                                command=lambda thread_id=chat["thread_id"], users=chat["users"]: self.convo_run(thread_id, users),
+                                font=font))
 
-                            chat_button.image = image
-                            chat_button.config(compound=tk.LEFT,
+                            self.pending_chats[-1].image = image
+                            self.pending_chats[-1].config(compound=tk.LEFT,
                                                image=image,
                                                anchor=tk.W,
                                                bd=1,
@@ -200,12 +196,12 @@ class App:
                                                fg="#ccc")
 
                         else:
-                            chat_button = tk.Button(
+                            self.pending_chats.append(tk.Button(
                                 self.root,
                                 text='    ' + chat["thread_name"],
-                                command=lambda: self.convo_run(chat["thread_id"], chat["users"]))
+                                command=lambda: self.convo_run(str(chat["thread_id"]), list(chat["users"]))))
 
-                            chat_button.config(
+                            self.pending_chats[-1].config(
                                 bd=1,
                                 anchor=tk.W,
                                 highlightbackground="#333",
@@ -213,16 +209,17 @@ class App:
                                 fg="#ccc"
                             )
 
-                        self.pending_chats.append(chat_button)
-
         def update_chats():
+            #Clear all widgets
+            for item in self.root.winfo_children():
+                item.pack_forget()
+
             if self.location != "homepage":
-                print(1)
                 return 0
 
             try:
                 for chat_button in self.pending_chats:
-                    chat_button.pack(fill=tk.X)
+                    chat_button.pack()
             except AttributeError:
                 pass
 
@@ -247,18 +244,15 @@ class App:
 
         def update_msgs():
             #TODO: Update msgs
-            print(users)
             self.root.after(100, update_msgs)
-
-        #TODO: Make use self.root
-        #TODO: Thread message sending
 
         #Clear all widgets
         for item in self.root.winfo_children():
-            item.pack_forget()
+            item.destroy()
 
         self.location = "convorun"
         self.root.maxsize(500, 500)
+        self.root.title("WinstagramDM - Chatting with " + str(users[0]))
         self.root.update()
 
         msg_in = tk.Entry(self.root)
