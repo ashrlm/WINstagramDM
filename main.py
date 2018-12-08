@@ -31,11 +31,14 @@ class Chat:
             self.pending_msgs = new_msgs
             self.last_msgs = self.last_msgs + new_msgs
 
-    def send_msg_entry(self):
+    def send_msg(self):
         #Get text/clear Entry
         msg = self.entry.get()
         #TODO: Send message by thread id
         self.usr.sendMessage(self.users[0], msg) #Only send to usr
+        #Reset thread
+        self.send_msg_thread = threading.Thread(target=self.send_msg)
+        self.send_msg_thread.daemon = True
 
 class App:
 
@@ -213,6 +216,10 @@ class App:
                         self.pending_chats.append(chat_button)
 
         def update_chats():
+            if self.location != "homepage":
+                print(1)
+                return 0
+
             try:
                 for chat_button in self.pending_chats:
                     chat_button.pack(fill=tk.X)
@@ -240,15 +247,21 @@ class App:
 
         def update_msgs():
             #TODO: Update msgs
+            print(users)
             self.root.after(100, update_msgs)
 
         #TODO: Make use self.root
         #TODO: Thread message sending
 
-        self.location = "convorun"
-        root = tk.Tk()
+        #Clear all widgets
+        for item in self.root.winfo_children():
+            item.pack_forget()
 
-        msg_in = tk.Entry(root)
+        self.location = "convorun"
+        self.root.maxsize(500, 500)
+        self.root.update()
+
+        msg_in = tk.Entry(self.root)
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
@@ -259,11 +272,14 @@ class App:
         get_msg_thread.daemon = True
         get_msg_thread.start()
 
+        chat.send_msg_thread = threading.Thread(target=chat.send_msg)
+        chat.send_msg_thread.daemon = True
+
         #Bindings
-        msg_in.bind("<Return>", lambda event: chat.send_msg_entry())
+        msg_in.bind("<Return>", lambda event: send_msg_thread.start())
 
         self.root.after(100, update_msgs)
-        root.mainloop()
+        self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
 
