@@ -204,26 +204,23 @@ class App:
                             self.pending_chats[-1].config(
                                 bd=1,
                                 anchor=tk.W,
-                                highlightbackground="#333",
                                 bg="#111",
                                 fg="#ccc"
                             )
 
         def update_chats():
-            #Clear all widgets
-            for item in self.root.winfo_children():
-                item.pack_forget()
 
             if self.location != "homepage":
                 return 0
 
             try:
                 for chat_button in self.pending_chats:
-                    chat_button.pack()
+                    chat_button.pack(fill=tk.X)
+
             except AttributeError:
                 pass
 
-            self.root.after(100, update_chats)
+            self.root.after(1000, update_chats)
 
         self.location = "homepage" #Used for checking in threads
 
