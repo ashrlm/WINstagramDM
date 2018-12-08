@@ -12,14 +12,16 @@ import api
 
 class Chat:
 
-    def __init__(self, app, threadId):
+    def __init__(self, app, entry, threadId, users):
         self.usr = app.usr
+        self.entry = entry
         self.threadId = threadId
+        self.users = users
         self.app = app
-        self.last_msgs = None #Last message you read - Used for highlighting
+        self.last_msgs = [] #Last message you read - Used for more efficient loading
 
     def get_msgs(self):
-        msgs = self.usr.getMessages(app.threadId)
+        msgs = self.usr.getMessages(self.threadId)
         if msgs != self.last_msgs:
             new_msgs = self.last_msgs
             for msg in msgs:
@@ -29,8 +31,11 @@ class Chat:
             self.pending_msgs = new_msgs
             self.last_msgs = self.last_msgs + new_msgs
 
-    def send_msg(self):
-        self.usr.api.sendMessage(self.target, text) #TODO: Get variable within method from other class
+    def send_msg_entry(self):
+        #Get text/clear Entry
+        msg = self.entry.get()
+        #TODO: Send message by thread id
+        self.usr.sendMessage(self.users[0], msg) #Only send to usr
 
 class App:
 
@@ -61,6 +66,7 @@ class App:
                 self.root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
+                self.login_thread.daemon = True
                 return 1
 
         def clear_entry(event):
@@ -95,6 +101,7 @@ class App:
 
         #Setup attempt_login thread
         self.login_thread = threading.Thread(target=attempt_login)
+        self.login_thread.daemon = True
         self.logged_in = False
 
         usr_login = tk.Entry()
@@ -143,8 +150,7 @@ class App:
 
     def homepage(self):
 
-        #TODO: Thread getChats to prevent blocking - Push threaded result to queue, which is
-        #      checked by main thread using .after
+        #BUG: Chats displayed not showing correct user
 
         def getChats():
             chats = []
@@ -178,7 +184,7 @@ class App:
                             chat_button = tk.Button(
                                 self.root,
                                 text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
-                                command=lambda: self.convo_run(chat["thread_id"]),
+                                command=lambda: self.convo_run(chat["thread_id"], chat["users"]),
                                 font=font)
 
                             chat_button.image = image
@@ -194,7 +200,7 @@ class App:
                             chat_button = tk.Button(
                                 self.root,
                                 text='    ' + chat["thread_name"],
-                                command=lambda: self.convo_run(chat["thread_id"]))
+                                command=lambda: self.convo_run(chat["thread_id"], chat["users"]))
 
                             chat_button.config(
                                 bd=1,
@@ -207,14 +213,13 @@ class App:
                         self.pending_chats.append(chat_button)
 
         def update_chats():
-            # BUG: When going to home page, chats are loaded one at a time, and with considerable delay, but this should be for all soon after each other
             try:
                 for chat_button in self.pending_chats:
                     chat_button.pack(fill=tk.X)
             except AttributeError:
                 pass
 
-            self.root.after(1000, update_chats)
+            self.root.after(100, update_chats)
 
         self.location = "homepage" #Used for checking in threads
 
@@ -224,38 +229,41 @@ class App:
         self.root.update()
 
         getChatsThread = threading.Thread(target=getChats)
+        getChatsThread.daemon = True
         getChatsThread.start()
 
         # TODO: Use scrollbar
-        self.root.after(0, update_chats) #update chat initial run
+        self.root.after(1, update_chats) #update chat initial run
         self.root.mainloop()
 
-    def convo_run(self, threadId):
-
-        def get_msg_entry(): #Used for getting from entry
-            return msg_in.get()
+    def convo_run(self, threadId, users):
 
         def update_msgs():
             #TODO: Update msgs
-            self.root.after(500, update_msgs())
+            self.root.after(100, update_msgs)
 
-        self.root = tk.Tk()
+        #TODO: Make use self.root
+        #TODO: Thread message sending
 
-        chat = Chat(self, threadId)
+        self.location = "convorun"
+        root = tk.Tk()
 
-        msg_in = tk.Entry()
+        msg_in = tk.Entry(root)
         msg_in.pack(side="bottom", fill="x")
         msg_in.focus_set()
 
+        chat = Chat(self, msg_in, threadId, users)
+
         #Thread setup
-        get_msg_thread = threading.Thread(target=chat.get_msgs())
+        get_msg_thread = threading.Thread(target=chat.get_msgs)
+        get_msg_thread.daemon = True
         get_msg_thread.start()
 
         #Bindings
-        msg_in.bind("<Return>", lambda msg=get_msg_entry(): chat.send_msg_entry(msg))
+        msg_in.bind("<Return>", lambda event: chat.send_msg_entry())
 
-        self.root.after(500, update_msgs)
-        self.root.mainloop()
+        self.root.after(100, update_msgs)
+        root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
 
