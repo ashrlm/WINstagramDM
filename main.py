@@ -2,6 +2,7 @@
 
 import threading
 import time
+import webbrowser
 import tkinter as tk
 import requests
 from io import BytesIO
@@ -59,6 +60,9 @@ class App:
 
             except ValueError:
                 psswd.delete(0, "end")
+                message = json.loads(json.dumps(self.api.LastJson))
+                if message["message"] == "challenge_required":
+                    webbrowser.open(message["challenge"]["url"], new=2)
 
             if not self.logged_in:
                 usr_login.config(state="normal")
@@ -238,17 +242,20 @@ class App:
         def scrollbar_update():
             self.canvas.configure(scrollregion=canvas.bbox("all"))
 
-        self.location = "homepage" #Used for checking in threads
+        def mouse_scroll():
+            self.canvas.yview_scroll(-1*(event.delta/120), "units")
 
         #Setup window
+        self.location = "homepage" #Used for checking in threads
         self.root.title("WinstagramDM - Homepage")
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
-        #setup canvas/scrollbar TODO: Make scrollbar seem inside frame
+        #setup canvas/scrollbar
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,800))
         self.canvas_frame = tk.Frame(self.canvas)
         self.canvas.configure(background="#000")
+        #Setup scrollbar TODO: Make scrollbar seem inside frame
         vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         vscroll.config(command=self.canvas.yview)
         vscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -257,6 +264,10 @@ class App:
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.create_window((0,0),window=self.canvas_frame,anchor='nw')
         self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
+        self.root.bind_all("<MouseWheel>", lambda event: mouse_scroll)
+        #Styling
+        self.canvas_frame.config(bd=0)
+        self.canvas.config(bd=0)
 
         getChatsThread = threading.Thread(target=getChats)
         getChatsThread.daemon = True
