@@ -258,19 +258,19 @@ class App:
         def scrollbar_update():
             self.canvas.configure(scrollregion=canvas.bbox("all"))
 
-        def mouse_scroll():
-            self.canvas.yview_scroll(-1*(event.delta/120), "units")
+        def mouse_scroll(event):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
         #Setup window
         self.location = "homepage" #Used for checking in threads
         self.root.title("WinstagramDM - Homepage")
+        self.root.config(background="#000")
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
         #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,1000))
-        self.canvas_frame = tk.Frame(self.canvas)
-        self.canvas.configure(background="#000")
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0)
+        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0)
         #Setup scrollbar TODO: Make scrollbar seem inside frame
         vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         vscroll.config(command=self.canvas.yview)
@@ -278,9 +278,8 @@ class App:
         self.canvas.config(yscrollcommand=vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
-        self.canvas.create_window((0,0),window=self.canvas_frame,anchor='nw')
-        self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
-        self.root.bind_all("<MouseWheel>", lambda event: mouse_scroll)
+        self.canvas.create_window((0,0), window=self.canvas_frame, anchor='nw')
+        self.root.bind_all("<MouseWheel>", mouse_scroll)
         #Styling
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
