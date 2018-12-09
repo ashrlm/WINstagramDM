@@ -3,11 +3,13 @@
 import threading
 import time
 import webbrowser
-import tkinter as tk
 import requests
+import json
+import tkinter as tk
 from io import BytesIO
 
 from PIL import Image, ImageTk, ImageOps, ImageDraw
+import InstagramAPI
 
 import api
 
@@ -53,18 +55,21 @@ class App:
             psswd.config(state="disabled")
             login.config(state="disabled")
 
-            try:
-                self.usr = api.User(usr_name, password)
+            self.usr = api.User(usr_name, password)
+
+            if self.usr.api.login():
                 self.root.quit()
                 self.logged_in = True
 
-            except ValueError:
-                psswd.delete(0, "end")
-                message = json.loads(json.dumps(self.api.LastJson))
-                if message["message"] == "challenge_required":
-                    webbrowser.open(message["challenge"]["url"], new=2)
-
             if not self.logged_in:
+
+                if json.loads(json.dumps(self.usr.api.LastJson))["message"] == "challenge_required":
+                    webbrowser.open(json.loads(json.dumps(self.usr.api.LastJson))["challenge"]["url"], new=2)
+                    if self.usr.api.login():
+                        self.root.quit()
+                        self.logged_in = True
+                        return 0
+
                 usr_login.config(state="normal")
                 psswd.config(state="normal")
                 login.config(state="normal")
@@ -86,14 +91,14 @@ class App:
         def clear_entry_psswd(event):
             try:
                 self.psswd_cleared
-                event.widget.config(show="*")
+                event.widget.config(show="●")
 
             except AttributeError:
                 event.widget.delete(0, "end")
                 self.psswd_cleared = True
-                event.widget.config(show="*")
+                event.widget.config(show="●")
 
-            event.widget.config(show="*")
+            event.widget.config(show="●")
 
         self.location = "login"
 
@@ -169,6 +174,11 @@ class App:
                 if new_chats != chats:
                     self.pending_chats = []
                     for chat in new_chats:
+                        if self.pending_chats == None:
+                            self.pending_chats = []
+                        else:
+                            continue
+
                         #Get thread icon
                         response = requests.get(chat["thread_icon"])
                         font = ("Helvetica", 10)
@@ -210,10 +220,7 @@ class App:
                                 bd=1,
                                 anchor=tk.W,
                                 bg="#111",
-                                fg="#ccc"
-                            )
-
-                time.sleep(60)
+                                fg="#ccc")
 
         def clear_chats():
             #clear all buttons
@@ -226,6 +233,7 @@ class App:
                 return 0
 
             try:
+                #TODO: Find some way of checking when to reset them
                 for chat_button in self.pending_chats:
                     try:
                         chat_button.pack(fill=tk.X)
@@ -237,7 +245,6 @@ class App:
 
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             self.root.after(10, update_chats)
-            self.root.after(60000, clear_chats)
 
         def scrollbar_update():
             self.canvas.configure(scrollregion=canvas.bbox("all"))
@@ -252,13 +259,13 @@ class App:
         self.root.update()
 
         #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,800))
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,1000))
         self.canvas_frame = tk.Frame(self.canvas)
         self.canvas.configure(background="#000")
         #Setup scrollbar TODO: Make scrollbar seem inside frame
         vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         vscroll.config(command=self.canvas.yview)
-        vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
         self.canvas.config(yscrollcommand=vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
