@@ -181,7 +181,7 @@ class App:
                             image = ImageTk.PhotoImage(tmp_img)
 
                             self.pending_chats.append(tk.Button(
-                                self.canvas,
+                                self.canvas_frame,
                                 text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
                                 command=lambda thread_id=chat["thread_id"], users=chat["users"]: self.convo_run(thread_id, users),
                                 font=font))
@@ -197,7 +197,7 @@ class App:
 
                         else:
                             self.pending_chats.append(tk.Button(
-                                self.root,
+                                self.canvas_frame,
                                 text='    ' + chat["thread_name"],
                                 command=lambda: self.convo_run(str(chat["thread_id"]), list(chat["users"]))))
 
@@ -222,17 +222,16 @@ class App:
 
             try:
                 for chat_button in self.pending_chats:
-                    if chat_button["text"] == self.first_thread:
-                        #Clear threads
-                        for chat in self.canvas.winfo_children:
-                            chat.destroy()
-
-                    chat_button.pack(fill=tk.X)
+                    try:
+                        chat_button.pack(fill=tk.X)
+                    except:
+                        pass
 
             except AttributeError:
                 pass #Hasn't loaded yet
 
-            self.root.after(1000, update_chats)
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            self.root.after(10, update_chats)
 
         self.location = "homepage" #Used for checking in threads
 
@@ -241,16 +240,21 @@ class App:
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
-        #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root)
+        #setup canvas/scrollbar TODO: Make scrollbar, scroll.
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,800))
+        self.canvas_frame = tk.Frame(self.canvas)
+        self.canvas.configure(background="#000")
+        vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        vscroll.config(command=self.canvas.yview)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.config(yscrollcommand=vscroll.set)
         self.canvas.pack(fill="both", expand=True)
-
+        self.canvas_frame.pack(fill="both", expand=True)
 
         getChatsThread = threading.Thread(target=getChats)
         getChatsThread.daemon = True
         getChatsThread.start()
 
-        # TODO: Use scrollbar
         self.root.after(1, update_chats) #update chat initial run
         self.root.mainloop()
 
