@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import threading
-import sys
+import time
 import tkinter as tk
 import requests
 from io import BytesIO
@@ -160,6 +160,7 @@ class App:
                     break
 
                 new_chats = self.usr.getChats()
+                self.num_required_chats = len(new_chats)
 
                 if new_chats != chats:
                     self.pending_chats = []
@@ -182,7 +183,7 @@ class App:
 
                             self.pending_chats.append(tk.Button(
                                 self.canvas_frame,
-                                text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
+                                text='    ' + chat["thread_name"],
                                 command=lambda thread_id=chat["thread_id"], users=chat["users"]: self.convo_run(thread_id, users),
                                 font=font))
 
@@ -195,7 +196,7 @@ class App:
                                                bg="#111",
                                                fg="#ccc")
 
-                        else:
+                        else: #Offer alternative if image not received
                             self.pending_chats.append(tk.Button(
                                 self.canvas_frame,
                                 text='    ' + chat["thread_name"],
@@ -208,17 +209,17 @@ class App:
                                 fg="#ccc"
                             )
 
+                time.sleep(60)
+
+        def clear_chats():
+            #clear all buttons
+            for button in self.canvas_frame.winfo_children():
+                button.destroy()
+
         def update_chats():
 
             if self.location != "homepage":
                 return 0
-
-            try:
-                self.first_thread = self.pending_chats[0]
-            except AttributeError:
-                pass
-            except IndexError:
-                pass
 
             try:
                 for chat_button in self.pending_chats:
@@ -232,6 +233,10 @@ class App:
 
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             self.root.after(10, update_chats)
+            self.root.after(60000, clear_chats)
+
+        def scrollbar_update():
+            self.canvas.configure(scrollregion=canvas.bbox("all"))
 
         self.location = "homepage" #Used for checking in threads
 
@@ -240,7 +245,7 @@ class App:
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
-        #setup canvas/scrollbar TODO: Make scrollbar, scroll.
+        #setup canvas/scrollbar TODO: Make scrollbar seem inside frame
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,800))
         self.canvas_frame = tk.Frame(self.canvas)
         self.canvas.configure(background="#000")
@@ -250,6 +255,8 @@ class App:
         self.canvas.config(yscrollcommand=vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
+        self.canvas.create_window((0,0),window=self.canvas_frame,anchor='nw')
+        self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
 
         getChatsThread = threading.Thread(target=getChats)
         getChatsThread.daemon = True
@@ -257,6 +264,9 @@ class App:
 
         self.root.after(1, update_chats) #update chat initial run
         self.root.mainloop()
+
+    def new_convo(self):
+        pass #TODO: Clear thing, give entry to start new chat with someone
 
     def convo_run(self, threadId, users):
 
