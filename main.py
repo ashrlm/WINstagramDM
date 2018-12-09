@@ -163,6 +163,7 @@ class App:
 
         def getChats():
             chats = []
+            self.pending_chats = None
             while True:
 
                 if self.location != "homepage":
@@ -172,12 +173,13 @@ class App:
                 self.num_required_chats = len(new_chats)
 
                 if new_chats != chats:
-                    self.pending_chats = []
+                    if self.pending_chats == None:
+                        self.pending_chats = []
+
+                    else:
+                        continue
+
                     for chat in new_chats:
-                        if self.pending_chats == None:
-                            self.pending_chats = []
-                        else:
-                            continue
 
                         #Get thread icon
                         response = requests.get(chat["thread_icon"])
@@ -226,6 +228,7 @@ class App:
             #clear all buttons
             for button in self.canvas_frame.winfo_children():
                 button.destroy()
+            self.pending_chats = None
 
         def update_chats():
 
@@ -233,14 +236,20 @@ class App:
                 return 0
 
             try:
-                #TODO: Find some way of checking when to reset them
+                #check multiple instagrances of text
+                for chat in self.pending_chats:
+                    for chat_ in self.pending_chats:
+                        if chat["text"] == chat_["text"] and chat != chat_:
+                            clear_chats()
+                            break
+
                 for chat_button in self.pending_chats:
                     try:
                         chat_button.pack(fill=tk.X)
                     except:
                         pass
 
-            except AttributeError:
+            except TypeError:
                 pass #Hasn't loaded yet
 
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
