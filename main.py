@@ -104,7 +104,7 @@ class App:
 
         self.root = tk.Tk()
         self.root.title("WinstagramDM - Login")
-        self.root.wm_iconbitmap('icon.ico')
+        self.root.wm_iconbitmap("icon.ico")
         self.root.geometry(newGeometry=("500x500")) #Sizing
         self.root.minsize(500, 500)
         self.root.maxsize(500, 500)
@@ -174,7 +174,18 @@ class App:
 
                 if new_chats != chats:
                     if self.pending_chats == None:
-                        self.pending_chats = []
+                        self.pending_chats = [tk.Button(
+                            self.canvas_frame,
+                            text=" " * 16 + "New Chat",
+                            command=self.new_convo(),
+                            font=("Helvetica", 12)
+                        )]
+                        self.pending_chats[-1].config(
+                            bd=1,
+                            anchor=tk.W,
+                            bg="#111",
+                            fg="#ccc"
+                        )
 
                     else:
                         continue
@@ -199,7 +210,7 @@ class App:
 
                             self.pending_chats.append(tk.Button(
                                 self.canvas_frame,
-                                text='    ' + chat["thread_name"],
+                                text="    " + chat["thread_name"],
                                 command=lambda thread_id=chat["thread_id"], users=chat["users"]: self.convo_run(thread_id, users),
                                 font=font))
 
@@ -215,7 +226,7 @@ class App:
                         else: #Offer alternative if image not received
                             self.pending_chats.append(tk.Button(
                                 self.canvas_frame,
-                                text='    ' + chat["thread_name"],
+                                text="    " + chat["thread_name"],
                                 command=lambda: self.convo_run(str(chat["thread_id"]), list(chat["users"]))))
 
                             self.pending_chats[-1].config(
@@ -236,6 +247,11 @@ class App:
                 return 0
 
             try:
+                #Update widths
+                for button in self.canvas_frame.winfo_children():
+                    width = int(self.root.geometry()[:self.root.geometry().index("x")])
+                    button.config(width=width)
+
                 #check multiple instagrances of text
                 for chat in self.pending_chats:
                     for chat_ in self.pending_chats:
@@ -250,7 +266,7 @@ class App:
                         pass
 
             except TypeError:
-                pass #Hasn't loaded yet
+                pass #Hasn"t loaded yet
 
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             self.root.after(10, update_chats)
@@ -278,7 +294,7 @@ class App:
         self.canvas.config(yscrollcommand=vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
-        self.canvas.create_window((0,0), window=self.canvas_frame, anchor='nw')
+        self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
         #Styling
         self.canvas_frame.config(bd=0)
