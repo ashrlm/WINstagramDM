@@ -181,7 +181,7 @@ class App:
                             image = ImageTk.PhotoImage(tmp_img)
 
                             self.pending_chats.append(tk.Button(
-                                self.root,
+                                self.canvas,
                                 text='    ' + chat["thread_name"],#TODO: make label THREADNAME+\n+MOSTRECENTTEXT
                                 command=lambda thread_id=chat["thread_id"], users=chat["users"]: self.convo_run(thread_id, users),
                                 font=font))
@@ -214,11 +214,23 @@ class App:
                 return 0
 
             try:
+                self.first_thread = self.pending_chats[0]
+            except AttributeError:
+                pass
+            except IndexError:
+                pass
+
+            try:
                 for chat_button in self.pending_chats:
+                    if chat_button["text"] == self.first_thread:
+                        #Clear threads
+                        for chat in self.canvas.winfo_children:
+                            chat.destroy()
+
                     chat_button.pack(fill=tk.X)
 
             except AttributeError:
-                pass
+                pass #Hasn't loaded yet
 
             self.root.after(1000, update_chats)
 
@@ -228,6 +240,11 @@ class App:
         self.root.title("WinstagramDM - Homepage")
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
+
+        #setup canvas/scrollbar
+        self.canvas = tk.Canvas(self.root)
+        self.canvas.pack(fill="both", expand=True)
+
 
         getChatsThread = threading.Thread(target=getChats)
         getChatsThread.daemon = True
