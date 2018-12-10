@@ -299,6 +299,9 @@ class App:
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
         #Setup window
+        for item in self.root.winfo_children():
+            item.destroy()
+            
         self.location = "homepage" #Used for checking in threads
         self.root.title("WinstagramDM - Homepage")
         self.root.config(background="#000")
@@ -465,17 +468,12 @@ class App:
         #TODO: Add/Config [INF] (toggle), [STOP], and [BACK] buttons below entry
         #TODO: Add messages to frame
         #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
-        #TODO: Add message unsend option on right click 
+        #TODO: Add message unsend option on right click
 
-        def update_convo():
+        def update_msgs():
             #TODO: Update msgs
 
-            #Update buttons
-            width = self.root.winfo_screenwidth()
-            back.config(width=width//3)
-
-
-            self.root.after(100, update_convo)
+            self.root.after(100, update_msgs)
 
         def toggle_spam():
             if inf_spam["text"] == "Infinite spam":
@@ -517,10 +515,6 @@ class App:
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
 
-        #TODO: Config and command these buttons
-        inf_spam = tk.Button(self.root, text="Infinite spam", command=toggle_spam)
-        stop_spam = tk.Button(self.root, text="Stop spam")
-        back = tk.Button(self.root)
 
         msg_in = tk.Entry(self.root)
         msg_in.config(
@@ -531,7 +525,30 @@ class App:
         msg_in.pack(side=tk.BOTTOM, fill=tk.X)
         msg_in.focus_set()
 
+
         chat = Chat(self, msg_in, threadId, users)
+
+        self.inf_spam = tk.Button(self.root, text="Infinite spam", command=toggle_spam)
+        self.inf_spam.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 12)
+        )
+        self.stop_spam = tk.Button(self.root, text="Stop spam", state="disabled")
+        self.stop_spam.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 12)
+        )
+        self.back = tk.Button(self.root, text="Return to homepage", command=self.homepage)
+        self.back.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 12)
+        )
+        self.inf_spam.pack(side=tk.BOTTOM, fill=tk.X)
+        self.stop_spam.pack(side=tk.BOTTOM, fill=tk.X)
+        self.back.pack(side=tk.BOTTOM, fill=tk.X)
 
         #Thread setup
         get_msg_thread = threading.Thread(target=chat.get_msgs)
@@ -544,7 +561,7 @@ class App:
         #Bindings
         msg_in.bind("<Return>", lambda event: chat.send_msg_thread.start())
 
-        self.root.after(100, update_convo)
+        self.root.after(100, update_msgs)
         self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
