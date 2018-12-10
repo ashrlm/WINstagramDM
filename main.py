@@ -164,7 +164,14 @@ class App:
         def getChats():
             chats = []
             self.pending_chats = None
+            self.sleep_required = False
+            self.clear_required = False
             while True:
+
+                if self.sleep_required:
+                    time.sleep(60)
+                    self.sleep_required = False
+                    self.clear_required = True
 
                 if self.location != "homepage":
                     break
@@ -247,17 +254,21 @@ class App:
                 return 0
 
             try:
+
+                if self.clear_required: #Check clearing
+                    clear_chats()
+                    self.clear_required = False
+
+                if len(self.pending_chats) > self.num_required_chats: #Check for repetition
+                    self.sleep_required = True
+
+                if self.sleep_required:
+                    return 0 #Not needed
+
                 #Update widths
                 for button in self.canvas_frame.winfo_children():
                     width = int(self.root.geometry()[:self.root.geometry().index("x")])
                     button.config(width=width)
-
-                #check multiple instagrances of text
-                for chat in self.pending_chats:
-                    for chat_ in self.pending_chats:
-                        if chat["text"] == chat_["text"] and chat != chat_:
-                            clear_chats()
-                            break
 
                 for chat_button in self.pending_chats:
                     try:
