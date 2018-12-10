@@ -285,8 +285,8 @@ class App:
         self.root.update()
 
         #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0)
-        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0)
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
+        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
         #Setup scrollbar TODO: Make scrollbar seem inside frame
         vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         vscroll.config(command=self.canvas.yview)
