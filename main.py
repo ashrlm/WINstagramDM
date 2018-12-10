@@ -326,9 +326,9 @@ class App:
     def new_convo(self):
         
         def check_user():
-            #TODO: Format user_select.get() to allow multiple eg: A, B
             self.target = user_select.get()
             msg_text = msg_entry.get()
+            
             if None in (self.target, msg_text):
                 self.check_send_thread = threading.Thread(target=check_user)
                 self.check_send_thread.daemon = True
@@ -338,15 +338,28 @@ class App:
             msg_entry.config(state="disabled")
             start_convo.config(state="disabled")
             
-            self.usr.api.searchUsername(self.target)
+            if type(self.target) != type([]):
+                self.target = self.target.split(',')
             
-            try:
-                self.usr.api.LastJson["user"]["pk"]
+            self.targets = []
+            for target in self.target:
+                print(target)
+                self.usr.api.searchUsername(target)
+                
+                try:
+                    self.usr.api.LastJson["user"]["pk"]
+                    self.targets.append(target)
+                except:
+                    self.exists = False
+                    self.usr_select_cleared = False
+                    self.msg_entry_cleared = False
+                    break
+                
+            else:
+                self.usr.sendMessage(self.targets, msg_text)
+                self.usr.api.getv2Inbox()
+                self.thread_id = json.loads(self.usr.api.LastResponse.content)["inbox"]["threads"][-1]["thread_id"]
                 self.exists = True
-            except:
-                self.exists = False
-                self.usr_select_cleared = False
-                self.msg_entry_cleared = False
                 
             self.check_send_thread = threading.Thread(target=check_user)
             self.check_send_thread.daemon = True
@@ -354,7 +367,7 @@ class App:
         def try_chat():
             try:
                 if self.exists:
-                    self.convo_run(self.target)
+                    self.convo_run(self.thread_id, self.targets)
                     
                 else:
                     user_select.config(state="normal")
