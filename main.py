@@ -37,7 +37,8 @@ class Chat:
     def send_msg(self):
         #Get text/clear Entry
         msg = self.entry.get()
-        self.usr.sendMessage(self.users[0], msg) #Only send to usr
+        self.usr.sendMessage(self.users, msg)
+        self.entry.delete(0, "end")
         #Reset thread
         self.send_msg_thread = threading.Thread(target=self.send_msg)
         self.send_msg_thread.daemon = True
@@ -69,15 +70,19 @@ class App:
                         self.root.quit()
                         self.logged_in = True
                         return 0
-                        
+
                 usr_login.config(state="normal")
                 psswd.config(state="normal")
                 login.config(state="normal")
                 psswd.delete(0, "end")
                 psswd.config(show="")
                 psswd.insert(0, "Password")
-                del self.psswd_cleared
-                print(self.psswd_cleared)
+
+                try:
+                    del self.psswd_cleared
+                except AttributeError:
+                    pass
+
                 self.psswd_cleared = False
                 self.root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
@@ -324,28 +329,27 @@ class App:
         self.root.mainloop()
 
     def new_convo(self):
-        
+
         def check_user():
             self.target = user_select.get()
             msg_text = msg_entry.get()
-            
+
             if None in (self.target, msg_text):
                 self.check_send_thread = threading.Thread(target=check_user)
                 self.check_send_thread.daemon = True
                 return 1
-                
+
             user_select.config(state="disabled")
             msg_entry.config(state="disabled")
             start_convo.config(state="disabled")
-            
+
             if type(self.target) != type([]):
                 self.target = self.target.split(',')
-            
+
             self.targets = []
             for target in self.target:
-                print(target)
                 self.usr.api.searchUsername(target)
-                
+
                 try:
                     self.usr.api.LastJson["user"]["pk"]
                     self.targets.append(target)
@@ -354,21 +358,21 @@ class App:
                     self.usr_select_cleared = False
                     self.msg_entry_cleared = False
                     break
-                
+
             else:
                 self.usr.sendMessage(self.targets, msg_text)
                 self.usr.api.getv2Inbox()
                 self.thread_id = json.loads(self.usr.api.LastResponse.content)["inbox"]["threads"][-1]["thread_id"]
                 self.exists = True
-                
+
             self.check_send_thread = threading.Thread(target=check_user)
             self.check_send_thread.daemon = True
-        
+
         def try_chat():
             try:
                 if self.exists:
                     self.convo_run(self.thread_id, self.targets)
-                    
+
                 else:
                     user_select.config(state="normal")
                     msg_entry.config(state="normal")
@@ -376,17 +380,17 @@ class App:
                     if not self.usr_select_cleared:
                         user_select.delete(0, "end")
                         user_select.insert(0, "Target user(s)")
-                    
+
                     if not self.msg_entry_cleared:
                         msg_entry.delete(0, "end")
                         msg_entry.insert(0, "Message")
-        
-            
+
+
             except AttributeError:
                 pass
-            
+
             self.root.after(100, try_chat)
-            
+
         def clear_usr_select():
             try:
                 if not self.usr_select_cleared:
@@ -395,7 +399,7 @@ class App:
             except AttributeError:
                 self.usr_select_cleared = False
                 clear_usr_select()
-                
+
         def clear_msg_entry():
             try:
                 if not self.msg_entry_cleared:
@@ -404,18 +408,18 @@ class App:
             except AttributeError:
                 self.msg_entry_cleared = False
                 clear_msg_entry()
-                
+
         self.root.after(100, try_chat)
         self.root.title("WinstagramDM - New chat")
         self.location = "newchat"
-            
+
         for item in self.root.winfo_children():
-            item.destroy() 
-        
+            item.destroy()
+
         self.check_send_thread = threading.Thread(target=check_user)
         self.check_send_thread.daemon = True
         self.root.after(100, try_chat)
-        
+
         user_select = tk.Entry(self.root)
         user_select.config(
             bg="#222",
@@ -423,7 +427,7 @@ class App:
             font=("Helvetica", 15)
         )
         user_select.insert(0, "Target user(s)")
-        
+
         msg_entry = tk.Entry(self.root)
         msg_entry.config(
             bg="#222",
@@ -431,19 +435,19 @@ class App:
             font=("Helvetica", 15)
         )
         msg_entry.insert(0, "Message")
-        
+
         start_convo = tk.Button(self.root, command=self.check_send_thread.start, text="Start chat")
         start_convo.config(
             bg="#222",
             fg="#ccc",
             font=("Helvetica", 15)
         )
-        
-        
+
+
         user_select.pack(side=tk.TOP, fill=tk.X)
         msg_entry.pack(side=tk.TOP, fill=tk.X)
         start_convo.pack(side=tk.TOP, fill=tk.X)
-        
+
         user_select.bind("<Return>", lambda event: self.check_send_thread.start())
         user_select.bind("<Key>", lambda event: clear_usr_select())
         user_select.bind("<Button-1>", lambda event: clear_usr_select())
@@ -452,14 +456,36 @@ class App:
         msg_entry.bind("<Button-1>", lambda event: clear_msg_entry())
         start_convo.bind("<Return>", lambda event: self.check_send_thread.start())
         start_convo.bind("<Key>", lambda event: self.check_send_thread.start())
-        
+
         self.root.mainloop()
 
     def convo_run(self, threadId, users):
 
-        def update_msgs():
+        #TODO: Auto scroll to BOTTOM
+        #TODO: Add/Config [INF] (toggle), [STOP], and [BACK] buttons below entry
+        #TODO: Add messages to frame
+        #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
+        #TODO: Add message unsend option on right click 
+
+        def update_convo():
             #TODO: Update msgs
-            self.root.after(100, update_msgs)
+
+            #Update buttons
+            width = self.root.winfo_screenwidth()
+            back.config(width=width//3)
+
+
+            self.root.after(100, update_convo)
+
+        def toggle_spam():
+            if inf_spam["text"] == "Infinite spam":
+                inf_spam["text"] = "Single message"
+
+            elif inf_spam["text"] == "Single message":
+                inf_spam["text"] = "Infinite spam"
+
+        def mouse_scroll(event):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
         #Clear all widgets
         for item in self.root.winfo_children():
@@ -467,11 +493,42 @@ class App:
 
         self.location = "convorun"
         self.root.maxsize(500, 500)
-        self.root.title("WinstagramDM - Chatting with " + str(users[0]))
+
+        title = "WinstagramDM - Chatting with "
+        for user in users:
+            title += str(user) + " "
+        self.root.title(title)
+
         self.root.update()
 
+        #setup canvas/scrollbar
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
+        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
+        #Setup scrollbar TODO: Make scrollbar seem inside frame
+        vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        vscroll.config(command=self.canvas.yview)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+        self.canvas.config(yscrollcommand=vscroll.set)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas_frame.pack(fill="both", expand=True)
+        self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
+        self.root.bind_all("<MouseWheel>", mouse_scroll)
+        #Styling
+        self.canvas_frame.config(bd=0)
+        self.canvas.config(bd=0)
+
+        #TODO: Config and command these buttons
+        inf_spam = tk.Button(self.root, text="Infinite spam", command=toggle_spam)
+        stop_spam = tk.Button(self.root, text="Stop spam")
+        back = tk.Button(self.root)
+
         msg_in = tk.Entry(self.root)
-        msg_in.pack(side="bottom", fill="x")
+        msg_in.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 12)
+        )
+        msg_in.pack(side=tk.BOTTOM, fill=tk.X)
         msg_in.focus_set()
 
         chat = Chat(self, msg_in, threadId, users)
@@ -485,9 +542,9 @@ class App:
         chat.send_msg_thread.daemon = True
 
         #Bindings
-        msg_in.bind("<Return>", lambda event: send_msg_thread.start())
+        msg_in.bind("<Return>", lambda event: chat.send_msg_thread.start())
 
-        self.root.after(100, update_msgs)
+        self.root.after(100, update_convo)
         self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
