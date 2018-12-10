@@ -15,25 +15,30 @@ class User: #Setup custom user class
         InstagramAPI.USER_AGENT = "Instagram 39.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)"
         #Setup custom UA to ensure reading dms allowed
 
-    def sendMessage(self, target_user, msgText):
-        #TODO: loop over target_user generating list of uids
-        if type(target_user[0]) != "int":
-            target_user = self.api.searchUsername(target_user)
+    def sendMessage(self, target, msgText):
+        targets = []
+        if type(target) != type([]):
+            target = [target]
+
+        for user in target:
             try:
-                target_user = self.api.LastJson["user"]["pk"]
-            except:
-                return ValueError("Invalid User")
+                int(user)
+                targets.append(str(user))
+            except ValueError:
+                target = self.api.searchUsername(user)
+                try:
+                    targets.append(str(self.api.LastJson["user"]["pk"]))
+                except:
+                    return ValueError("Invalid User")
 
-        target_user = str(target_user)
-
-        target_user = "[[{}]]".format(",".join([target_user]))
         url = "direct_v2/threads/broadcast/text/"
 
+        target = "[[{}]]".format(",".join([str(user) for user in targets]))
         data = {
             "text": msgText,
             "_uuid": self.api.uuid,
             "_csrftoken": self.api.token,
-            "recipient_users": target_user,
+            "recipient_users": target,
             "_uid": self.api.username_id,
             "action": "send_item",
             "client_context": self.api.generateUUID(True)}
@@ -59,11 +64,11 @@ class User: #Setup custom user class
 
         return chats
 
-    def getMessages(self, chat_id):
-        self.api.getv2Threads(str(chat_id))
+    def getMessages(self, chat_id, cursor=None):
+        self.api.getv2Threads(str(chat_id), cursor=cursor)
         thread = json.loads(json.dumps(self.api.LastJson))["thread"]
 
-        users = {self.api.username_id: self.name} #Get list of people - initialize with self included
+        users = {} #Get list of people
         for user in thread["users"]:
             users[user["pk"]] = user["username"]
 
@@ -75,7 +80,5 @@ class User: #Setup custom user class
                 items.append({item["user_id"]:
                              {"text": item["text"],
                               "time": item["timestamp"]}})
-
-        items = items[::-1] #Reverse for proper order
 
         return items
