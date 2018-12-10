@@ -35,10 +35,26 @@ class Chat:
             self.last_msgs = self.last_msgs + new_msgs
 
     def send_msg(self):
-        #Get text/clear Entry
+
         msg = self.entry.get()
-        self.usr.sendMessage(self.users, msg)
         self.entry.delete(0, "end")
+        self.entry.config(state="disabled")
+
+        if self.app.inf_spam["text"] == "Infinite spam":
+            self.app.stop_spam.config(state="normal")
+            self.stop_spam = False
+            while True:
+                if self.stop_spam:
+                    self.app.stop_spam.config(state="disabled")
+                    break
+
+                #Get text/clear Entry
+                self.usr.sendMessage(self.users, msg)
+
+        else:
+            self.usr.sendMessage(self.users, msg)
+
+        self.entry.config(state="normal")
         #Reset thread
         self.send_msg_thread = threading.Thread(target=self.send_msg)
         self.send_msg_thread.daemon = True
@@ -301,7 +317,7 @@ class App:
         #Setup window
         for item in self.root.winfo_children():
             item.destroy()
-            
+
         self.location = "homepage" #Used for checking in threads
         self.root.title("WinstagramDM - Homepage")
         self.root.config(background="#000")
@@ -476,11 +492,14 @@ class App:
             self.root.after(100, update_msgs)
 
         def toggle_spam():
-            if inf_spam["text"] == "Infinite spam":
-                inf_spam["text"] = "Single message"
+            if self.inf_spam["text"] == "Infinite spam":
+                self.inf_spam["text"] = "Single message"
 
-            elif inf_spam["text"] == "Single message":
-                inf_spam["text"] = "Infinite spam"
+            elif self.inf_spam["text"] == "Single message":
+                self.inf_spam["text"] = "Infinite spam"
+
+        def end_spam():
+            self.chat.stop_spam = True
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -528,13 +547,13 @@ class App:
 
         chat = Chat(self, msg_in, threadId, users)
 
-        self.inf_spam = tk.Button(self.root, text="Infinite spam", command=toggle_spam)
+        self.inf_spam = tk.Button(self.root, text="Single message", command=toggle_spam)
         self.inf_spam.config(
             bg="#222",
             fg="#ccc",
             font=("Helvetica", 12)
         )
-        self.stop_spam = tk.Button(self.root, text="Stop spam", state="disabled")
+        self.stop_spam = tk.Button(self.root, text="Stop spam", state="disabled", command=end_spam)
         self.stop_spam.config(
             bg="#222",
             fg="#ccc",
