@@ -61,7 +61,7 @@ class App:
                 self.root.quit()
                 self.logged_in = True
 
-            if not self.logged_in:
+            else:
 
                 if json.loads(json.dumps(self.usr.api.LastJson))["message"] == "challenge_required":
                     webbrowser.open(json.loads(json.dumps(self.usr.api.LastJson))["challenge"]["url"], new=2)
@@ -69,11 +69,16 @@ class App:
                         self.root.quit()
                         self.logged_in = True
                         return 0
-
+                        
                 usr_login.config(state="normal")
                 psswd.config(state="normal")
                 login.config(state="normal")
                 psswd.delete(0, "end")
+                psswd.config(show="")
+                psswd.insert(0, "Password")
+                del self.psswd_cleared
+                print(self.psswd_cleared)
+                self.psswd_cleared = False
                 self.root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
@@ -137,17 +142,17 @@ class App:
 
         #Styling
         font = ("Helvetica", 13)
-        self.root.configure(background="#000")
-        usr_login.configure(
+        self.root.config(background="#000")
+        usr_login.config(
                             background="#222",
                             fg="#ddd",
                             bd=0,
                             font=font)
-        psswd.configure(background="#222",
+        psswd.config(background="#222",
                         fg="#ddd",
                         bd=0,
                         font=font)
-        login.configure(background="#222",
+        login.config(background="#222",
                         fg="#ddd",
                         bd=0,
                         font=font)
@@ -184,7 +189,7 @@ class App:
                         self.pending_chats = [tk.Button(
                             self.canvas_frame,
                             text=" " * 16 + "New Chat",
-                            command=self.new_convo(),
+                            command=self.new_convo,
                             font=("Helvetica", 12)
                         )]
                         self.pending_chats[-1].config(
@@ -279,11 +284,11 @@ class App:
             except TypeError:
                 pass #Hasn"t loaded yet
 
-            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            self.canvas.config(scrollregion=self.canvas.bbox("all"))
             self.root.after(10, update_chats)
 
         def scrollbar_update():
-            self.canvas.configure(scrollregion=canvas.bbox("all"))
+            self.canvas.config(scrollregion=canvas.bbox("all"))
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -319,7 +324,123 @@ class App:
         self.root.mainloop()
 
     def new_convo(self):
-        pass #TODO: Clear thing, give entry to start new chat with someone
+        
+        def check_user():
+            #TODO: Format user_select.get() to allow multiple eg: A, B
+            self.target = user_select.get()
+            msg_text = msg_entry.get()
+            if None in (self.target, msg_text):
+                self.check_send_thread = threading.Thread(target=check_user)
+                self.check_send_thread.daemon = True
+                return 1
+                
+            user_select.config(state="disabled")
+            msg_entry.config(state="disabled")
+            start_convo.config(state="disabled")
+            
+            self.usr.api.searchUsername(self.target)
+            
+            try:
+                self.usr.api.LastJson["user"]["pk"]
+                self.exists = True
+            except:
+                self.exists = False
+                self.usr_select_cleared = False
+                self.msg_entry_cleared = False
+                
+            self.check_send_thread = threading.Thread(target=check_user)
+            self.check_send_thread.daemon = True
+        
+        def try_chat():
+            try:
+                if self.exists:
+                    self.convo_run(self.target)
+                    
+                else:
+                    user_select.config(state="normal")
+                    msg_entry.config(state="normal")
+                    start_convo.config(state="normal")
+                    if not self.usr_select_cleared:
+                        user_select.delete(0, "end")
+                        user_select.insert(0, "Target user(s)")
+                    
+                    if not self.msg_entry_cleared:
+                        msg_entry.delete(0, "end")
+                        msg_entry.insert(0, "Message")
+        
+            
+            except AttributeError:
+                pass
+            
+            self.root.after(100, try_chat)
+            
+        def clear_usr_select():
+            try:
+                if not self.usr_select_cleared:
+                    user_select.delete(0, "end")
+                    self.usr_select_cleared = True
+            except AttributeError:
+                self.usr_select_cleared = False
+                clear_usr_select()
+                
+        def clear_msg_entry():
+            try:
+                if not self.msg_entry_cleared:
+                    msg_entry.delete(0, "end")
+                    self.msg_entry_cleared = True
+            except AttributeError:
+                self.msg_entry_cleared = False
+                clear_msg_entry()
+                
+        self.root.after(100, try_chat)
+        self.root.title("WinstagramDM - New chat")
+        self.location = "newchat"
+            
+        for item in self.root.winfo_children():
+            item.destroy() 
+        
+        self.check_send_thread = threading.Thread(target=check_user)
+        self.check_send_thread.daemon = True
+        self.root.after(100, try_chat)
+        
+        user_select = tk.Entry(self.root)
+        user_select.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 15)
+        )
+        user_select.insert(0, "Target user(s)")
+        
+        msg_entry = tk.Entry(self.root)
+        msg_entry.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 15)
+        )
+        msg_entry.insert(0, "Message")
+        
+        start_convo = tk.Button(self.root, command=self.check_send_thread.start, text="Start chat")
+        start_convo.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 15)
+        )
+        
+        
+        user_select.pack(side=tk.TOP, fill=tk.X)
+        msg_entry.pack(side=tk.TOP, fill=tk.X)
+        start_convo.pack(side=tk.TOP, fill=tk.X)
+        
+        user_select.bind("<Return>", lambda event: self.check_send_thread.start())
+        user_select.bind("<Key>", lambda event: clear_usr_select())
+        user_select.bind("<Button-1>", lambda event: clear_usr_select())
+        msg_entry.bind("<Return>", lambda event: self.check_send_thread.start())
+        msg_entry.bind("<Key>", lambda event: clear_msg_entry())
+        msg_entry.bind("<Button-1>", lambda event: clear_msg_entry())
+        start_convo.bind("<Return>", lambda event: self.check_send_thread.start())
+        start_convo.bind("<Key>", lambda event: self.check_send_thread.start())
+        
+        self.root.mainloop()
 
     def convo_run(self, threadId, users):
 
