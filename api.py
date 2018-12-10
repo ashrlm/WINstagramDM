@@ -64,8 +64,8 @@ class User: #Setup custom user class
 
         return chats
 
-    def getMessages(self, chat_id, cursor=None):
-        self.api.getv2Threads(str(chat_id), cursor=cursor)
+    def getMessages(self, chat_id):
+        self.api.getv2Threads(str(chat_id))
         thread = json.loads(json.dumps(self.api.LastJson))["thread"]
 
         users = {} #Get list of people
@@ -78,7 +78,8 @@ class User: #Setup custom user class
             type = item["item_type"]
             if type == "text":
                 items.append({item["user_id"]:
-                             {"text": item["text"],
-                              "time": item["timestamp"]}})
+                             {"text"         : item["text"],
+                              "time"         : item["timestamp"],
+                              "item_id"      : item["item_id"]}})
 
         return items
