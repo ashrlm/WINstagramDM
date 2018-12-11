@@ -22,6 +22,7 @@ class Chat:
         self.users = users
         self.app = app
         self.last_msgs = []
+        self.pending_msgs = []
 
     def get_msgs(self):
         msgs = self.usr.getMessages(self.threadId)
@@ -29,8 +30,7 @@ class Chat:
             new_msgs = self.last_msgs
             for msg in msgs:
                 if msg not in self.last_msgs:
-                    new_msgs.append(tk.Text(self.app.canvas_frame))
-                    new_msgs[-1].insert(tk.END, msg)
+                    new_msgs.append(tk.Label(self.app.canvas_frame, text=msg["text"]))
 
             self.pending_msgs = new_msgs
             self.last_msgs = self.last_msgs + new_msgs
@@ -486,6 +486,8 @@ class App:
     def convo_run(self, threadId, users):
 
         #BUG: Messages taking up far too much space
+        #BUG: Sometimes not responding
+        #TODO: Make canvas_frame not take up whole screen (Maybe pack order??)
         #TODO: Update scrollregion
         #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
         #TODO: Add message unsend option on right click
@@ -494,14 +496,15 @@ class App:
 
             try:
                 for message in chat.pending_msgs:
-                    print(message)
-                    message.pack(side=tk.TOP, fill=tk.X)
+                    message.pack(side=tk.BOTTOM, fill=tk.X)
 
-            except AttributeError as e:
-                print(e)
+                chat.pending_msgs = []
+
+            except AttributeError:
+                pass
 
             #Autoscroll
-            if self.vscroll.get()[1] >= .9:
+            if self.vscroll.get()[1] >= .9 and chat.pending_msgs != []:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already
 
             self.root.after(100, update_convo)

@@ -77,9 +77,9 @@ class User: #Setup custom user class
         for item in thread["items"]:
             type = item["item_type"]
             if type == "text":
-                items.append({item["user_id"]:
-                             {"text"         : item["text"],
+                items.append({"user"         : item["user_id"],
+                              "text"         : item["text"],
                               "time"         : item["timestamp"],
-                              "item_id"      : item["item_id"]}})
+                              "item_id"      : item["item_id"]})
 
         return items
