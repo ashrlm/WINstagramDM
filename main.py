@@ -21,7 +21,7 @@ class Chat:
         self.threadId = threadId
         self.users = users
         self.app = app
-        self.last_msgs = [] #Last message you read - Used for more efficient loading
+        self.last_msgs = []
 
     def get_msgs(self):
         msgs = self.usr.getMessages(self.threadId)
@@ -42,10 +42,11 @@ class Chat:
 
         if self.app.inf_spam["text"] == "Infinite spam":
             self.app.stop_spam.config(state="normal")
+            self.app.back.config(state="disabled")
+            self.app.inf_spam.config(state="disabled")
             self.stop_spam = False
             while True:
                 if self.stop_spam:
-                    self.app.stop_spam.config(state="disabled")
                     break
 
                 #Get text/clear Entry
@@ -55,6 +56,9 @@ class Chat:
             self.usr.sendMessage(self.users, msg)
 
         self.entry.config(state="normal")
+        self.app.stop_spam.config(state="disabled")
+        self.app.back.config(state="normal")
+        self.app.inf_spam.config(state="normal")
         #Reset thread
         self.send_msg_thread = threading.Thread(target=self.send_msg)
         self.send_msg_thread.daemon = True
@@ -509,7 +513,7 @@ class App:
                 self.inf_spam["text"] = "Infinite spam"
 
         def end_spam():
-            self.chat.stop_spam = True
+            chat.stop_spam = True
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
