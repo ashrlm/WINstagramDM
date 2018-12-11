@@ -29,7 +29,8 @@ class Chat:
             new_msgs = self.last_msgs
             for msg in msgs:
                 if msg not in self.last_msgs:
-                    new_msgs.append(msg)
+                    new_msgs.append(tk.Text(self.app.canvas_frame))
+                    new_msgs[-1].insert(tk.END, msg)
 
             self.pending_msgs = new_msgs
             self.last_msgs = self.last_msgs + new_msgs
@@ -331,7 +332,7 @@ class App:
         #setup canvas/scrollbar
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
         self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
-        #Setup scrollbar TODO: Make scrollbar seem inside frame
+        #Setup scrollbar
         self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         self.vscroll.config(command=self.canvas.yview)
         self.vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
@@ -484,24 +485,24 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #TODO: Add messages to frame
+        #BUG: Messages taking up far too much space
+        #TODO: Update scrollregion
         #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
         #TODO: Add message unsend option on right click
 
         def update_convo():
 
             try:
-                for message in self.pending_msgs:
-                    message.pack(fill=tk.X)
+                for message in chat.pending_msgs:
+                    print(message)
+                    message.pack(side=tk.TOP, fill=tk.X)
 
-            except AttributeError:
-                pass
+            except AttributeError as e:
+                print(e)
 
             #Autoscroll
             if self.vscroll.get()[1] >= .9:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already
-
-            #TODO: Update msgs
 
             self.root.after(100, update_convo)
 
@@ -597,7 +598,7 @@ class App:
         self.root.after(100, update_convo)
         self.root.mainloop()
 
-        #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
+        #TODO: get msgs, update position when new received, show back/targetusr/info in top
 
 def main():
     app = App()
