@@ -328,10 +328,10 @@ class App:
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
         self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
         #Setup scrollbar TODO: Make scrollbar seem inside frame
-        vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
-        vscroll.config(command=self.canvas.yview)
-        vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
-        self.canvas.config(yscrollcommand=vscroll.set)
+        self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        self.vscroll.config(command=self.canvas.yview)
+        self.vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+        self.canvas.config(yscrollcommand=self.vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
@@ -480,16 +480,26 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #TODO: Auto scroll to BOTTOM
-        #TODO: Add/Config [INF] (toggle), [STOP], and [BACK] buttons below entry
         #TODO: Add messages to frame
         #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
         #TODO: Add message unsend option on right click
 
-        def update_msgs():
+        def update_convo():
+
+            try:
+                for message in self.pending_msgs:
+                    message.pack(fill=tk.X)
+
+            except AttributeError:
+                pass
+
+            #Autoscroll
+            if self.vscroll.get()[1] >= .9:
+                self.canvas.yview_moveto(1) #Move to bottom if almost there already
+
             #TODO: Update msgs
 
-            self.root.after(100, update_msgs)
+            self.root.after(100, update_convo)
 
         def toggle_spam():
             if self.inf_spam["text"] == "Infinite spam":
@@ -521,11 +531,11 @@ class App:
         #setup canvas/scrollbar
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
         self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
-        #Setup scrollbar TODO: Make scrollbar seem inside frame
-        vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
-        vscroll.config(command=self.canvas.yview)
-        vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
-        self.canvas.config(yscrollcommand=vscroll.set)
+        #Setup scrollbar
+        self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        self.vscroll.config(command=self.canvas.yview)
+        self.vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+        self.canvas.config(yscrollcommand=self.vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
@@ -580,7 +590,7 @@ class App:
         #Bindings
         msg_in.bind("<Return>", lambda event: chat.send_msg_thread.start())
 
-        self.root.after(100, update_msgs)
+        self.root.after(100, update_convo)
         self.root.mainloop()
 
         #TODO: get msgs, update position when new received, show back/targetusr/info in top, quit on back
