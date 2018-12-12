@@ -143,7 +143,6 @@ class App:
                 except AttributeError:
                     pass
 
-                self.psswd_cleared = False
                 self.root.title("WinstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
@@ -379,6 +378,7 @@ class App:
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
+        self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
         #Styling
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
@@ -529,6 +529,9 @@ class App:
         #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS  TK TEXT**
         #TODO: Add message unsend option on right click
 
+        def scrollbar_update():
+            self.canvas.config(scrollregion=canvas.bbox("all"))
+
         def update_convo():
 
             try:
@@ -589,6 +592,7 @@ class App:
         self.canvas.yview_moveto(1)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
+        self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
         #Styling
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
