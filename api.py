@@ -83,3 +83,27 @@ class User: #Setup custom user class
                               "item_id"      : item["item_id"]})
 
         return items
+
+    def unsend(self, thread_id, item_id):
+        thread_id = str(thread_id)
+        item_id = str(item_id)
+        endpoint = "direct_v2/threads/"+thread_id+"/items/"+item_id+"/delete/"
+        data = {
+            "_uuid": self.api.uuid,
+            "_csrftoken": self.api.token}
+
+        response = self.api.s.post(self.API_URL + endpoint, data=data)
+
+        if response.status_code == 200:
+            self.LastResponse = response
+            self.LastJson = json.loads(response.text)
+            return True
+
+        else:
+            try:
+                self.LastResponse = response
+                self.LastJson = json.loads(response.text)
+            except:
+                pass
+
+            return False
