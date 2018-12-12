@@ -70,10 +70,9 @@ class Chat:
                             )
 
                     self.pending_msgs = new_msgs
-                    self.last_msgs = self.last_msgs + new_msgs
 
-            except AttributeError:
-                pass
+            except AttributeError as e:
+                print
 
     def send_msg(self):
 
@@ -526,7 +525,6 @@ class App:
 
         #BUG: Sometimes not responding
         #BUG: Messages not filling horizontally
-        #TODO: Make canvas_frame *not* take up whole screen (Maybe pack order??)
         #TODO: Update scrollregion
         #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS  TK TEXT**
         #TODO: Add message unsend option on right click
@@ -534,10 +532,11 @@ class App:
         def update_convo():
 
             try:
-                if chat.pending_msgs[-1] not in chat.last_msgs:
-                    message.pack(side=tk.TOP, fill=tk.X)
+                for msg in chat.pending_msgs:
+                    msg.pack(side=tk.BOTTOM, fill=tk.X)
 
-                chat.pending_msgs.delete(chat.pending_msgs[-1])
+                chat.last_msgs = chat.pending_msgs
+                chat.pending_msgs = []
 
             except AttributeError:
                 pass
