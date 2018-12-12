@@ -361,7 +361,7 @@ class App:
             self.root.after(10, update_chats)
 
         def scrollbar_update():
-            self.canvas.config(scrollregion=canvas.bbox("all"))
+            self.canvas.config(scrollregion=ox("all"))
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -376,7 +376,7 @@ class App:
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
 
-        #setup canvas/scrollbar
+        #setup canvas
         self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
         self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
         #Setup scrollbar
@@ -533,11 +533,10 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #BUG: Messages not filling horizontally
-        #TODO/BUG: Make canvas not fill whole frame
+        #BUG: Messages continuously redrawn
+        #BUG: Messages not filling horizontally when big enough
         #TODO: find some way of adding timestamp in small text in bottom corner
         #Maybe make each message a frame with multiple text widgets on it?
-        #TODO: Add message unsend || copy option on right click
 
         def copy(event):
             self.root.clipboard_clear()
@@ -545,10 +544,10 @@ class App:
             self.root.update()
 
         def scrollbar_update():
-            self.canvas.config(scrollregion=canvas.bbox("all"))
+            self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
         def update_convo():
-            #TODO: Do this one at a time (once per run)
+            #TODO: Check redrawability here and with item_id
 
             try:
                 for msg in chat.pending_msgs:
@@ -560,13 +559,11 @@ class App:
             except AttributeError:
                 pass
 
-            except IndexError:
-                pass
-
             #Autoscroll
             if self.vscroll.get()[1] >= .9 and chat.pending_msgs != []:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already
 
+            self.canvas.config(scrollregion=self.canvas.bbox("all"))
             self.root.after(100, update_convo)
 
         def toggle_spam():
@@ -606,25 +603,6 @@ class App:
 
         self.root.update()
 
-        #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
-        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
-        #Setup scrollbar
-        self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
-        self.vscroll.config(command=self.canvas.yview)
-        self.vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
-        self.canvas.config(yscrollcommand=self.vscroll.set)
-        self.canvas.pack(fill="both", expand=True)
-        self.canvas_frame.pack(fill="both", expand=True)
-        self.canvas.yview_moveto(1)
-        self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
-        self.root.bind_all("<MouseWheel>", mouse_scroll)
-        self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
-        #Styling
-        self.canvas_frame.config(bd=0)
-        self.canvas.config(bd=0)
-
-
         msg_in = tk.Entry(self.root)
         msg_in.config(
             bg="#222",
@@ -658,6 +636,24 @@ class App:
         self.inf_spam.pack(side=tk.BOTTOM, fill=tk.X)
         self.stop_spam.pack(side=tk.BOTTOM, fill=tk.X)
         self.back.pack(side=tk.BOTTOM, fill=tk.X)
+
+        #setup canvas/scrollbar
+        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
+        self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
+        #Setup scrollbar
+        self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        self.vscroll.config(command=self.canvas.yview)
+        self.vscroll.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+        self.canvas.config(yscrollcommand=self.vscroll.set)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas_frame.pack(fill="both", expand=True)
+        self.canvas.yview_moveto(1)
+        self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
+        self.root.bind_all("<MouseWheel>", mouse_scroll)
+        self.root.bind_all("<Configure>", lambda event: scrollbar_update)
+        #Styling
+        self.canvas_frame.config(bd=0)
+        self.canvas.config(bd=0)
 
         #Setup right click self.menu
         self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
