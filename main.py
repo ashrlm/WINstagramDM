@@ -24,16 +24,56 @@ class Chat:
         self.last_msgs = []
         self.pending_msgs = []
 
-    def get_msgs(self):
-        msgs = self.usr.getMessages(self.threadId)
-        if msgs != self.last_msgs:
-            new_msgs = self.last_msgs
-            for msg in msgs:
-                if msg not in self.last_msgs:
-                    new_msgs.append(tk.Label(self.app.canvas_frame, text=msg["text"]))
+        get_user_pics_thread = threading.Thread(target=self.get_user_pics)
+        get_user_pics_thread.daemon = True
+        get_user_pics_thread.start()
 
-            self.pending_msgs = new_msgs
-            self.last_msgs = self.last_msgs + new_msgs
+    def get_user_pics(self):
+        usr_pics = {} #{pk: profile_pic_url}
+        for user in self.users + [self.app.usr_name]:
+            self.usr.api.searchUsername(user)
+            response = json.loads(json.dumps(self.usr.api.LastJson))
+            pfp_url = response["user"]["profile_pic_url"]
+
+            img_response = requests.get(pfp_url)
+            tmp_img = Image.open(BytesIO(img_response.content))
+            tmp_img = tmp_img.resize((50, 50))
+            #Generate mask for circularising image
+            mask = Image.new("L", (50, 50), 0)
+            draw = ImageDraw.Draw(mask)
+            draw.ellipse((0, 0) + mask.size, fill=255)
+            tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
+            tmp_img.putalpha(mask)
+            image = ImageTk.PhotoImage(tmp_img)
+
+            usr_pics[response["user"]["pk"]] = image
+
+        self.usr_pics = usr_pics
+
+    def get_msgs(self):
+        while True:
+            try:
+                msgs = self.usr.getMessages(self.threadId)
+                if msgs != self.last_msgs:
+                    new_msgs = self.last_msgs
+                    for msg in msgs:
+                        if msg not in self.last_msgs:
+                            new_msgs.append(tk.Label(
+                                self.app.canvas_frame,
+                                text=msg["text"]))
+                            new_msgs[-1].config(
+                                anchor=tk.W,
+                                compound=tk.LEFT,
+                                image=self.usr_pics[msg["user"]],
+                                bg="#222",
+                                fg="#ccc"
+                            )
+
+                    self.pending_msgs = new_msgs
+                    self.last_msgs = self.last_msgs + new_msgs
+
+            except AttributeError as e:
+                print(e)
 
     def send_msg(self):
 
@@ -70,14 +110,14 @@ class App:
 
         def attempt_login():
             self.root.title("WinstagramDM - Logging in")
-            usr_name = usr_login.get()
+            self.usr_name = usr_login.get()
             password = psswd.get()
             #disable editing while logging in
             usr_login.config(state="disabled")
             psswd.config(state="disabled")
             login.config(state="disabled")
 
-            self.usr = api.User(usr_name, password)
+            self.usr = api.User(self.usr_name, password)
 
             if self.usr.api.login():
                 self.root.quit()
@@ -221,7 +261,7 @@ class App:
                         self.pending_chats[-1].config(
                             bd=1,
                             anchor=tk.W,
-                            bg="#111",
+                            bg="#222",
                             fg="#ccc"
                         )
 
@@ -235,7 +275,6 @@ class App:
                         font = ("Helvetica", 10)
 
                         if response.status_code == 200: #Check image received ok
-                            tmp_win = tk.Tk()
                             tmp_img = Image.open(BytesIO(response.content))
                             tmp_img = tmp_img.resize((50, 50))
                             #Generate mask for circularising image
@@ -258,7 +297,7 @@ class App:
                                                anchor=tk.W,
                                                bd=1,
                                                highlightbackground="#333",
-                                               bg="#111",
+                                               bg="#222",
                                                fg="#ccc")
 
                         else: #Offer alternative if image not received
@@ -270,7 +309,7 @@ class App:
                             self.pending_chats[-1].config(
                                 bd=1,
                                 anchor=tk.W,
-                                bg="#111",
+                                bg="#222",
                                 fg="#ccc")
 
         def clear_chats():
@@ -485,11 +524,10 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #BUG: Messages taking up far too much space
-        #BUG: Sometimes not responding
-        #TODO: Make canvas_frame not take up whole screen (Maybe pack order??)
+        #BUG: Messages not filling horizontally
+        #TODO: Make canvas_frame *not* take up whole screen (Maybe pack order??)
         #TODO: Update scrollregion
-        #TODO: When making msgs, add pfp at side (Store images in chat.pfps - Pull at creation)
+        #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS IN TK TEXT**
         #TODO: Add message unsend option on right click
 
         def update_convo():
@@ -600,8 +638,6 @@ class App:
 
         self.root.after(100, update_convo)
         self.root.mainloop()
-
-        #TODO: get msgs, update position when new received, show back/targetusr/info in top
 
 def main():
     app = App()
