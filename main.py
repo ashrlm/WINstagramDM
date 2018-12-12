@@ -52,27 +52,25 @@ class Chat:
         self.usr_pics = usr_pics
 
     def get_msgs(self):
-        #BUG: Msgs constantly getting redrawn
         while True:
             try:
                 msgs = self.usr.getMessages(self.threadId)
                 if msgs != self.last_msgs:
-                    new_msgs = self.last_msgs
+                    new_msgs = []
                     for msg in msgs:
-                        if msg not in self.last_msgs:
-                            new_msgs.append(tk.Label(
-                                self.app.canvas_frame,
-                                text=" " * 4 + msg["text"]))
-                            new_msgs[-1].config(
-                                anchor=tk.W,
-                                compound=tk.LEFT,
-                                image=self.usr_pics[msg["user"]],
-                                bg="#222",
-                                fg="#ccc"
-                            )
-                            new_msgs[-1].item_id = msg["item_id"]
-                            new_msgs[-1].thread_id = self.threadId
-                            new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk
+                        new_msgs.append(tk.Label(
+                            self.app.canvas_frame,
+                            text=" " * 4 + msg["text"]))
+                        new_msgs[-1].config(
+                            anchor=tk.W,
+                            compound=tk.LEFT,
+                            image=self.usr_pics[msg["user"]],
+                            bg="#222",
+                            fg="#ccc"
+                        )
+                        new_msgs[-1].item_id = msg["item_id"]
+                        new_msgs[-1].thread_id = self.threadId
+                        new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk
 
 
                     self.pending_msgs = new_msgs
@@ -533,8 +531,7 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #BUG: Messages continuously redrawn
-        #BUG: Messages not filling horizontally when big enough
+        #BUG: When a message is sent, it's drawn at the top, instead of the bottom, where it should be
         #TODO: find some way of adding timestamp in small text in bottom corner
         #Maybe make each message a frame with multiple text widgets on it?
 
@@ -547,20 +544,19 @@ class App:
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
         def update_convo():
-            #TODO: Check redrawability here and with item_id
-
             try:
                 for msg in chat.pending_msgs:
-                    msg.pack(side=tk.BOTTOM, fill=tk.X)
+                    if msg.item_id not in chat.last_msgs:
+                        msg.pack(side=tk.BOTTOM, fill=tk.X)
+                        chat.last_msgs.append(msg.item_id)
 
-                chat.last_msgs = chat.pending_msgs
                 chat.pending_msgs = []
 
-            except AttributeError:
-                pass
+            except AttributeError as e:
+                print(e)
 
             #Autoscroll
-            if self.vscroll.get()[1] >= .9 and chat.pending_msgs != []:
+            if self.vscroll.get()[1] >= .8 and chat.pending_msgs != []:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already
 
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
