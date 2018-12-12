@@ -29,6 +29,7 @@ class Chat:
         get_user_pics_thread.start()
 
     def get_user_pics(self):
+        #BUG: Pfps sometimes not loaded
         usr_pics = {} #{pk: profile_pic_url}
         for user in self.users + [self.app.usr_name]:
             self.usr.api.searchUsername(user)
@@ -51,6 +52,7 @@ class Chat:
         self.usr_pics = usr_pics
 
     def get_msgs(self):
+        #BUG: Msgs constantly getting redrawn
         while True:
             try:
                 msgs = self.usr.getMessages(self.threadId)
@@ -68,11 +70,15 @@ class Chat:
                                 bg="#222",
                                 fg="#ccc"
                             )
+                            new_msgs[-1].item_id = msg["item_id"]
+                            new_msgs[-1].thread_id = self.threadId
+                            new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk
+
 
                     self.pending_msgs = new_msgs
 
-            except AttributeError as e:
-                print
+            except AttributeError:
+                pass
 
     def send_msg(self):
 
@@ -119,6 +125,8 @@ class App:
             self.usr = api.User(self.usr_name, password)
 
             if self.usr.api.login():
+                self.usr.api.searchUsername(self.usr_name)
+                self.usr_pk = self.usr.api.LastJson["user"]["pk"]
                 self.root.quit()
                 self.logged_in = True
 
@@ -127,6 +135,8 @@ class App:
                 if json.loads(json.dumps(self.usr.api.LastJson))["message"] == "challenge_required":
                     webbrowser.open(json.loads(json.dumps(self.usr.api.LastJson))["challenge"]["url"], new=2)
                     if self.usr.api.login():
+                        self.usr.api.searchUsername(self.usr_name)
+                        self.usr_pk = self.api.LastJson["user"]["pk"]
                         self.root.quit()
                         self.logged_in = True
                         return 0
@@ -523,16 +533,22 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #BUG: Sometimes not responding
         #BUG: Messages not filling horizontally
-        #TODO: Update scrollregion
-        #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS  TK TEXT**
-        #TODO: Add message unsend option on right click
+        #TODO/BUG: Make canvas not fill whole frame
+        #TODO: find some way of adding timestamp in small text in bottom corner
+        #Maybe make each message a frame with multiple text widgets on it?
+        #TODO: Add message unsend || copy option on right click
+
+        def copy(event):
+            self.root.clipboard_clear()
+            self.root.clipboard_append(event.widget["text"])
+            self.root.update()
 
         def scrollbar_update():
             self.canvas.config(scrollregion=canvas.bbox("all"))
 
         def update_convo():
+            #TODO: Do this one at a time (once per run)
 
             try:
                 for msg in chat.pending_msgs:
@@ -565,6 +581,17 @@ class App:
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+        def popup(event):
+            #Clear menu
+            self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
+
+            if type(event.widget) == tk.Label:
+                self.menu.add_command(label="Copy", command=lambda event=event: copy(event))
+                if event.widget.unsendable:
+                    unsend_thread = threading.Thread(target=lambda thread_id=event.widget.thread_id, item_id=event.widget.item_id: self.usr.unsend(thread_id, item_id))
+                    self.menu.add_command(label="Unsend", command=unsend_thread.start)
+                self.menu.post(event.x_root, event.y_root)
 
         #Clear all widgets
         for item in self.root.winfo_children():
@@ -631,6 +658,10 @@ class App:
         self.inf_spam.pack(side=tk.BOTTOM, fill=tk.X)
         self.stop_spam.pack(side=tk.BOTTOM, fill=tk.X)
         self.back.pack(side=tk.BOTTOM, fill=tk.X)
+
+        #Setup right click self.menu
+        self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
+        self.canvas_frame.bind_all("<Button-3>", popup)
 
         #Thread setup
         get_msg_thread = threading.Thread(target=chat.get_msgs)
