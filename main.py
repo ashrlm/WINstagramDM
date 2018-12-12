@@ -60,7 +60,7 @@ class Chat:
                         if msg not in self.last_msgs:
                             new_msgs.append(tk.Label(
                                 self.app.canvas_frame,
-                                text=msg["text"]))
+                                text=" " * 4 + msg["text"]))
                             new_msgs[-1].config(
                                 anchor=tk.W,
                                 compound=tk.LEFT,
@@ -72,8 +72,8 @@ class Chat:
                     self.pending_msgs = new_msgs
                     self.last_msgs = self.last_msgs + new_msgs
 
-            except AttributeError as e:
-                print(e)
+            except AttributeError:
+                pass
 
     def send_msg(self):
 
@@ -524,21 +524,25 @@ class App:
 
     def convo_run(self, threadId, users):
 
+        #BUG: Sometimes not responding
         #BUG: Messages not filling horizontally
         #TODO: Make canvas_frame *not* take up whole screen (Maybe pack order??)
         #TODO: Update scrollregion
-        #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS IN TK TEXT**
+        #TODO: find some way of adding timestamp in small text in bottom corner **DIFFERENT FONTS  TK TEXT**
         #TODO: Add message unsend option on right click
 
         def update_convo():
 
             try:
-                for message in chat.pending_msgs:
-                    message.pack(side=tk.BOTTOM, fill=tk.X)
+                if chat.pending_msgs[-1] not in chat.last_msgs:
+                    message.pack(side=tk.TOP, fill=tk.X)
 
-                chat.pending_msgs = []
+                chat.pending_msgs.delete(chat.pending_msgs[-1])
 
             except AttributeError:
+                pass
+
+            except IndexError:
                 pass
 
             #Autoscroll
@@ -565,7 +569,6 @@ class App:
             item.destroy()
 
         self.location = "convorun"
-        self.root.maxsize(500, 500)
 
         title = "WinstagramDM - Chatting with "
         for user in users:
@@ -584,6 +587,7 @@ class App:
         self.canvas.config(yscrollcommand=self.vscroll.set)
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
+        self.canvas.yview_moveto(1)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
         #Styling
