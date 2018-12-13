@@ -73,7 +73,7 @@ class Chat:
                         new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk
 
 
-                    self.pending_msgs = new_msgs
+                    self.pending_msgs = new_msgs[::-1] #invert to fix packing of recently-sent messages
 
             except AttributeError:
                 pass
@@ -93,7 +93,6 @@ class Chat:
                 if self.stop_spam:
                     break
 
-                #Get text/clear Entry
                 self.usr.sendMessage(self.users, msg)
 
         else:
@@ -531,7 +530,6 @@ class App:
 
     def convo_run(self, threadId, users):
 
-        #BUG: When a message is sent, it's drawn at the top, instead of the bottom, where it should be
         #TODO: find some way of adding timestamp in small text in bottom corner
         #Maybe make each message a frame with multiple text widgets on it?
 
@@ -547,7 +545,7 @@ class App:
             try:
                 for msg in chat.pending_msgs:
                     if msg.item_id not in chat.last_msgs:
-                        msg.pack(side=tk.BOTTOM, fill=tk.X)
+                        msg.pack(side=tk.TOP, fill=tk.X)
                         chat.last_msgs.append(msg.item_id)
 
                 chat.pending_msgs = []
