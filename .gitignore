@@ -1,3 +1,5 @@
 Pipfile.lock
 __pycache__/
 maincli.py
+src/setup.py
+bin

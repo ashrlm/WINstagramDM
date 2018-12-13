@@ -671,7 +671,7 @@ def main():
     try:
         app = App()
     except: #Handle exiting
-        quit()
+        pass
 
 if __name__ == "__main__":
     main()
