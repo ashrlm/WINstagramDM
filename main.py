@@ -668,7 +668,10 @@ class App:
         self.root.mainloop()
 
 def main():
-    app = App()
+    try:
+        app = App()
+    except: #Handle exiting
+        quit()
 
 if __name__ == "__main__":
     main()
