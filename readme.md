@@ -6,4 +6,4 @@ as that does not work on many machines, and is, in my opinion, very poorly desig
 
 ### Installation
 To run this, you will need Python 3. Once this is downloaded, clone this repo and navigate to the directory where it was installed. From there, open a command line and run
-`cd src`, then`python -m pip install pipenv`, followed by `pipenv install`. This will install the required dependencies, and from there, run `pipenv run python main.py`. Alternativlely, download the installer from this repo or [my website](http://projects.ashrlm.ml/winstagramdm).
+`cd src`, then`python -m pip install pipenv`, followed by `pipenv install`. This will install the required dependencies, and from there, run `pipenv run python main.py`. Alternativlely, download the installer <a href="http://projects.ashrlm.ml/WINstagramDM/WINstagramDM_Installer.exe" download>here</a>, from this repo, or [my website](http://projects.ashrlm.ml/WINstagramDM).
