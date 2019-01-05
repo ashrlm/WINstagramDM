@@ -551,12 +551,11 @@ class App:
 
                 chat.pending_msgs = []
 
-            except AttributeError as e:
-                print(e)
+            except AttributeError:
+                pass
 
-            #Autoscroll TODO: Scroll to bottom immediately
-            print(self.vscroll.get()[1])
-            if self.vscroll.get()[1] >= 0.9 and self.scroll_req:
+            #Autoscroll TODO: Scroll to bottom immediately #BUG: Autoscrolling when not near the top
+            if self.vscroll.get()[1] >= 0.95 and self.scroll_req:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already and new message received
                 self.scroll_req = False
 
