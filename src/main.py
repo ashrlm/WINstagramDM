@@ -23,13 +23,13 @@ class Chat:
         self.app = app
         self.last_msgs = []
         self.pending_msgs = []
+        self.app.scroll_req = False
 
         get_user_pics_thread = threading.Thread(target=self.get_user_pics)
         get_user_pics_thread.daemon = True
         get_user_pics_thread.start()
 
     def get_user_pics(self):
-        #BUG: Pfps sometimes not loaded
         usr_pics = {} #{pk: profile_pic_url}
         for user in self.users + [self.app.usr_name]:
             self.usr.api.searchUsername(user)
@@ -74,6 +74,7 @@ class Chat:
 
 
                     self.pending_msgs = new_msgs[::-1] #invert to fix packing of recently-sent messages
+                    self.app.scroll_req = True
 
             except AttributeError:
                 pass
@@ -553,9 +554,11 @@ class App:
             except AttributeError as e:
                 print(e)
 
-            #Autoscroll
-            if self.vscroll.get()[1] >= .8 and chat.pending_msgs != []:
-                self.canvas.yview_moveto(1) #Move to bottom if almost there already
+            #Autoscroll TODO: Scroll to bottom immediately
+            print(self.vscroll.get()[1])
+            if self.vscroll.get()[1] >= 0.9 and self.scroll_req:
+                self.canvas.yview_moveto(1) #Move to bottom if almost there already and new message received
+                self.scroll_req = False
 
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
             self.root.after(100, update_convo)
