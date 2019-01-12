@@ -11,12 +11,12 @@ from PIL import Image, ImageTk, ImageOps, ImageDraw
 pictures = {} # {pic_url: picture}
 
 def retrieve_picture(pic_url):
-    
-    if pic_url in pictures:
+
+    if pic_url in pictures and pictures[pic_url]:
         return pictures[pic_url]
-    
+
     response = requests.get(pic_url)
-    
+
     if response.status_code == 200: #Check image received ok
         tmp_win = tk.Tk()
         tmp_img = Image.open(BytesIO(response.content))

@@ -36,17 +36,7 @@ class Chat:
             self.usr.api.searchUsername(user)
             response = json.loads(json.dumps(self.usr.api.LastJson))
             pfp_url = response["user"]["profile_pic_url"]
-
-            img_response = requests.get(pfp_url)
-            tmp_img = Image.open(BytesIO(img_response.content))
-            tmp_img = tmp_img.resize((50, 50))
-            #Generate mask for circularising image
-            mask = Image.new("L", (50, 50), 0)
-            draw = ImageDraw.Draw(mask)
-            draw.ellipse((0, 0) + mask.size, fill=255)
-            tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
-            tmp_img.putalpha(mask)
-            image = ImageTk.PhotoImage(tmp_img)
+            image = pfp.retrieve_picture(pfp_url)
 
             usr_pics[response["user"]["pk"]] = image
 
@@ -74,8 +64,9 @@ class Chat:
                         new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk
 
 
-                    self.pending_msgs = new_msgs[::-1] #invert to fix packing of recently-sent messages
-                    self.app.scroll_req = True
+                    if self.app.location == "convorun":
+                        self.pending_msgs = new_msgs[::-1] #invert to fix packing of recently-sent messages
+                        self.app.scroll_req = True
 
             except AttributeError:
                 pass
@@ -239,7 +230,7 @@ class App:
 
     def homepage(self):
 
-        #BUG: Scrollbars occasionally not working (Occurs when convo ran and returned before messages finished loading and then another convo ran and returned normally)
+        #BUG: Weird scrollbar behaviour
 
         def getChats():
             chats = []
@@ -320,7 +311,7 @@ class App:
         def update_chats():
 
             if self.location != "homepage":
-                return 0
+                return
 
             try:
 
@@ -332,7 +323,7 @@ class App:
                     self.sleep_required = True
 
                 if self.sleep_required:
-                    return 0 #Not needed
+                    return #Not needed
 
                 #Update widths
                 for button in self.canvas_frame.winfo_children():
@@ -340,10 +331,7 @@ class App:
                     button.config(width=width)
 
                 for chat_button in self.pending_chats:
-                    try:
-                        chat_button.pack(fill=tk.X)
-                    except:
-                        pass
+                    chat_button.pack(fill=tk.X)
 
             except TypeError:
                 pass #Hasn"t loaded yet
@@ -529,8 +517,6 @@ class App:
 
         #TODO: Add utilisation of image caching in pfp.py
 
-        #BUG: When home pressed before images are loaded, they are still added into the Homepage - Check before returning chats
-
         def copy(event):
             self.root.clipboard_clear()
             self.root.clipboard_append(event.widget["text"])
@@ -542,6 +528,10 @@ class App:
         def update_convo():
             try:
                 for msg in chat.pending_msgs:
+
+                    if self.location != "convorun":
+                        return
+
                     if msg.item_id not in chat.last_msgs:
                         msg.pack(side=tk.TOP, fill=tk.X)
                         chat.last_msgs.append(msg.item_id)
