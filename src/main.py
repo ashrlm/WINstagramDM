@@ -12,6 +12,7 @@ from PIL import Image, ImageTk, ImageOps, ImageDraw
 import InstagramAPI
 
 import api
+import pfp
 
 class Chat:
 
@@ -238,6 +239,8 @@ class App:
 
     def homepage(self):
 
+        #BUG: Scrollbars occasionally not working (Occurs when convo ran and returned before messages finished loading and then another convo ran and returned normally)
+
         def getChats():
             chats = []
             self.pending_chats = None
@@ -277,20 +280,10 @@ class App:
                     for chat in new_chats:
 
                         #Get thread icon
-                        response = requests.get(chat["thread_icon"])
+                        image = pfp.retrieve_picture(chat["thread_icon"])
                         font = ("Helvetica", 10)
 
-                        if response.status_code == 200: #Check image received ok
-                            tmp_img = Image.open(BytesIO(response.content))
-                            tmp_img = tmp_img.resize((50, 50))
-                            #Generate mask for circularising image
-                            mask = Image.new("L", (50, 50), 0)
-                            draw = ImageDraw.Draw(mask)
-                            draw.ellipse((0, 0) + mask.size, fill=255)
-                            tmp_img = ImageOps.fit(tmp_img, mask.size, centering=(.5, .5))
-                            tmp_img.putalpha(mask)
-                            image = ImageTk.PhotoImage(tmp_img)
-
+                        if image: #Check image received ok
                             self.pending_chats.append(tk.Button(
                                 self.canvas_frame,
                                 text="    " + chat["thread_name"],
@@ -534,6 +527,10 @@ class App:
         #TODO: find some way of adding timestamp in small text in bottom corner
         #Maybe make each message a frame with multiple text widgets on it?
 
+        #TODO: Add utilisation of image caching in pfp.py
+
+        #BUG: When home pressed before images are loaded, they are still added into the Homepage - Check before returning chats
+
         def copy(event):
             self.root.clipboard_clear()
             self.root.clipboard_append(event.widget["text"])
@@ -554,7 +551,7 @@ class App:
             except AttributeError:
                 pass
 
-            #Autoscroll TODO: Scroll to bottom immediately #BUG: Autoscrolling when not near the top
+            #Autoscroll
             if self.vscroll.get()[1] >= 0.95 and self.scroll_req:
                 self.canvas.yview_moveto(1) #Move to bottom if almost there already and new message received
                 self.scroll_req = False
