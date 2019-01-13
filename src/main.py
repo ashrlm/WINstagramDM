@@ -3,13 +3,8 @@
 import threading
 import time
 import webbrowser
-import requests
 import json
 import tkinter as tk
-from io import BytesIO
-
-from PIL import Image, ImageTk, ImageOps, ImageDraw
-import InstagramAPI
 
 import api
 import pfp
@@ -126,7 +121,7 @@ class App:
                     webbrowser.open(json.loads(json.dumps(self.usr.api.LastJson))["challenge"]["url"], new=2)
                     if self.usr.api.login():
                         self.usr.api.searchUsername(self.usr_name)
-                        self.usr_pk = self.api.LastJson["user"]["pk"]
+                        self.usr_pk = self.usr.api.LastJson["user"]["pk"]
                         self.root.quit()
                         self.logged_in = True
                         return 0
@@ -226,6 +221,8 @@ class App:
         usr_login.place_forget()
         psswd.place_forget()
         login.place_forget()
+
+        self.scroll_req = True
         self.homepage()
 
     def homepage(self):
@@ -340,7 +337,7 @@ class App:
             self.root.after(10, update_chats)
 
         def scrollbar_update():
-            self.canvas.config(scrollregion=ox("all"))
+            self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -394,7 +391,7 @@ class App:
             msg_entry.config(state="disabled")
             start_convo.config(state="disabled")
 
-            if type(self.target) != type([]):
+            if not isinstance(self.target, list):  #Make sure in proper format
                 self.target = self.target.split(',')
 
             self.targets = []
@@ -566,7 +563,7 @@ class App:
             #Clear menu
             self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
 
-            if type(event.widget) == tk.Label:
+            if isinstance(event.widget, tk.Label):
                 self.menu.add_command(label="Copy", command=lambda event=event: copy(event))
                 if event.widget.unsendable:
                     unsend_thread = threading.Thread(target=lambda thread_id=event.widget.thread_id, item_id=event.widget.item_id: self.usr.unsend(thread_id, item_id))
@@ -621,7 +618,7 @@ class App:
         self.back.pack(side=tk.BOTTOM, fill=tk.X)
 
         #setup canvas/scrollbar
-        self.canvas = tk.Canvas(self.root, scrollregion=(0,0,500,500), background="#000", bd=0, highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, scrollregion=(0, 0, 500, 500), background="#000", bd=0, highlightthickness=0)
         self.canvas_frame = tk.Frame(self.canvas, background="#000", bd=0, highlightthickness=0)
         #Setup scrollbar
         self.vscroll = tk.Scrollbar(self.root, orient=tk.VERTICAL)
@@ -631,7 +628,7 @@ class App:
         self.canvas.pack(fill="both", expand=True)
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.yview_moveto(1)
-        self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
+        self.canvas.create_window((0, 0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
         self.root.bind_all("<Configure>", lambda event: scrollbar_update)
         #Styling
@@ -658,8 +655,8 @@ class App:
 
 def main():
     try:
-        app = App()
-    except: #Handle exiting
+        App()
+    except:  #Handle exiting in GUI
         pass
 
 if __name__ == "__main__":
