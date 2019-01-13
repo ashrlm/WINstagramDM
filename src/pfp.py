@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import requests
 import tkinter as tk
 from io import BytesIO
+import requests
 
 from PIL import Image, ImageTk, ImageOps, ImageDraw
 
-#Note - This stores and provides an easy interface for accessing profile pictures, to reduce load times
+# Note - This stores and provides an easy interface for accessing pfps, to reduce load times
 
 pictures = {} # {pic_url: picture}
 
@@ -18,7 +18,7 @@ def retrieve_picture(pic_url):
     response = requests.get(pic_url)
 
     if response.status_code == 200: #Check image received ok
-        tmp_win = tk.Tk()
+        tk.Tk()
         tmp_img = Image.open(BytesIO(response.content))
         tmp_img = tmp_img.resize((50, 50))
         #Generate mask for circularising image
