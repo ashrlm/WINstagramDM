@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import threading
 import time
 import webbrowser
@@ -168,7 +169,7 @@ class App:
 
         self.root = tk.Tk()
         self.root.title("WinstagramDM - Login")
-        self.root.wm_iconbitmap("icon.ico")
+        self.root.tk.call('wm', 'iconphoto', self.root._w, tk.Image("photo", file="icon.gif"))
         self.root.geometry(newGeometry=("500x500")) #Sizing
         self.root.minsize(500, 500)
         self.root.maxsize(500, 500)
@@ -654,10 +655,7 @@ class App:
         self.root.mainloop()
 
 def main():
-    try:
-        App()
-    except:  #Handle exiting in GUI
-        pass
+    App()
 
 if __name__ == "__main__":
     main()
