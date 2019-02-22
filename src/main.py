@@ -230,8 +230,6 @@ class App:
 
         #BUG: Weird scrollbar behaviour
 
-        print("homepage")
-
         def getChats():
             chats = []
             self.pending_chats = []
@@ -240,18 +238,31 @@ class App:
 
             while True:
                 if self.sleep_required:
-                    print("sleep")
+
                     time.sleep(60)
                     self.sleep_required = False
                     self.clear_required = True
 
                 if self.location != "homepage":
-                    print("exited")
                     break
 
                 new_chats = self.usr.getChats()
                 self.num_required_chats = len(new_chats)
-                print(self.num_required_chats)
+
+                if chats == []:
+
+                    self.pending_chats.append(tk.Button(
+                            self.canvas_frame,
+                            text=" " * 16 + "New Chat",
+                            command=self.new_convo,
+                            font=("Helvetica", 12)
+                    ))
+                    self.pending_chats[-1].config(
+                        bd=1,
+                        anchor=tk.W,
+                        bg="#222",
+                        fg="#ccc"
+                    )
 
                 if new_chats != chats:
 
@@ -289,19 +300,17 @@ class App:
                                 bg="#222",
                                 fg="#ccc")
 
+                    chats = new_chats
+
         def clear_chats():
             #clear all buttons
-            print("cleared")
             for button in self.canvas_frame.winfo_children():
                 button.destroy()
             self.pending_chats = None
 
         def update_chats():
 
-            #BUG: If left previous chat before fully loaded, new page will load weirdly
-
             if self.location != "homepage":
-                print("Incorrect location");
                 return
 
             try:
@@ -511,6 +520,10 @@ class App:
         #Maybe make each message a frame with multiple text widgets on it?
 
         #TODO: Add utilisation of image caching in pfp.py
+
+        #TODO: Currently if there is an unsupported (not text) image, it will just not be shown
+        #      Instead of this, we need to A: Add support for normal pictures, and until then / for
+        #      stories, maven, etc. add a "unsupported message. Type: [MESSAGE TYPE]" message in its place
 
         def copy(event):
             self.root.clipboard_clear()
