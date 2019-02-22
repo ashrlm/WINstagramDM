@@ -230,41 +230,30 @@ class App:
 
         #BUG: Weird scrollbar behaviour
 
+        print("homepage")
+
         def getChats():
             chats = []
-            self.pending_chats = None
+            self.pending_chats = []
             self.sleep_required = False
             self.clear_required = False
-            while True:
 
+            while True:
                 if self.sleep_required:
+                    print("sleep")
                     time.sleep(60)
                     self.sleep_required = False
                     self.clear_required = True
 
                 if self.location != "homepage":
+                    print("exited")
                     break
 
                 new_chats = self.usr.getChats()
                 self.num_required_chats = len(new_chats)
+                print(self.num_required_chats)
 
                 if new_chats != chats:
-                    if self.pending_chats == None:
-                        self.pending_chats = [tk.Button(
-                            self.canvas_frame,
-                            text=" " * 16 + "New Chat",
-                            command=self.new_convo,
-                            font=("Helvetica", 12)
-                        )]
-                        self.pending_chats[-1].config(
-                            bd=1,
-                            anchor=tk.W,
-                            bg="#222",
-                            fg="#ccc"
-                        )
-
-                    else:
-                        continue
 
                     for chat in new_chats:
 
@@ -302,13 +291,17 @@ class App:
 
         def clear_chats():
             #clear all buttons
+            print("cleared")
             for button in self.canvas_frame.winfo_children():
                 button.destroy()
             self.pending_chats = None
 
         def update_chats():
 
+            #BUG: If left previous chat before fully loaded, new page will load weirdly
+
             if self.location != "homepage":
+                print("Incorrect location");
                 return
 
             try:
@@ -317,8 +310,12 @@ class App:
                     clear_chats()
                     self.clear_required = False
 
-                if len(self.pending_chats) > self.num_required_chats: #Check for repetition
-                    self.sleep_required = True
+                try:
+                    if len(self.pending_chats) > self.num_required_chats: #Check for repetition
+                        self.sleep_required = True
+                except AttributeError:
+                    #Num required not yet set - Do nothing
+                    pass
 
                 if self.sleep_required:
                     return #Not needed
@@ -335,7 +332,7 @@ class App:
                 pass #Hasn"t loaded yet
 
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
-            self.root.after(10, update_chats)
+            self.root.after(1, update_chats)
 
         def scrollbar_update():
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
@@ -579,7 +576,8 @@ class App:
 
         title = "WinstagramDM - Chatting with "
         for user in users:
-            title += str(user) + " "
+            title += str(user) + ", "
+        title = title[:-2]
         self.root.title(title)
 
         self.root.update()
