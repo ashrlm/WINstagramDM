@@ -570,8 +570,12 @@ class App:
         def mouse_scroll(event):
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
+        def clear_popups(event):
+            self.menu.destroy()
+
         def popup(event):
             #Clear menu
+            clear_popups(None)
             self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
 
             if isinstance(event.widget, tk.Label):
@@ -649,6 +653,7 @@ class App:
 
         #Setup right click self.menu
         self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
+        self.canvas_frame.bind_all("<Button-1>", clear_popups)
         self.canvas_frame.bind_all("<Button-3>", popup)
 
         #Thread setup
