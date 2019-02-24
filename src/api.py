@@ -12,7 +12,7 @@ class User: #Setup custom user class
         self.name = usr_name
         self.api = InstagramAPI(usr_name, password)
 
-        InstagramAPI.USER_AGENT = "Instagram 39.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)"
+        InstagramAPI.USER_AGENT = "Instagram 99.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)"
         #Setup custom UA to ensure reading dms allowed
 
     def sendMessage(self, target, msgText):
@@ -76,12 +76,20 @@ class User: #Setup custom user class
 
         for item in thread["items"]:
             type = item["item_type"]
-            # TODO: Add new messages in this order: Placeholder, image, link, profile, maven
+            # TODO: Add new messages in this order: image, link, profile
+            # TODO: Add show_pfp attr to determine whether or not to show
             if type == "text":
                 items.append({"user"    : item["user_id"],
                               "text"    : item["text"],
                               "time"    : item["timestamp"],
                               "item_id" : item["item_id"]})
+
+            elif type == "video_call_event":
+                items.append({"user"    : item["user_id"],
+                              "text"    : item["video_call_event"]["description"],
+                              "time"    : item["timestamp"],
+                              "item_id" : item["item_id"]})
+
             else:
                 items.append({"user"    : item["user_id"],
                               "text"    : "Unsupported message type: " + item["item_type"],
