@@ -76,11 +76,17 @@ class User: #Setup custom user class
 
         for item in thread["items"]:
             type = item["item_type"]
+            # TODO: Add new messages in this order: Placeholder, image, link, profile, maven
             if type == "text":
-                items.append({"user"         : item["user_id"],
-                              "text"         : item["text"],
-                              "time"         : item["timestamp"],
-                              "item_id"      : item["item_id"]})
+                items.append({"user"    : item["user_id"],
+                              "text"    : item["text"],
+                              "time"    : item["timestamp"],
+                              "item_id" : item["item_id"]})
+            else:
+                items.append({"user"    : item["user_id"],
+                              "text"    : "Unsupported message type: " + item["item_type"],
+                              "time"    : item["timestamp"],
+                              "item_id" : item["item_id"]})
 
         return items
 
