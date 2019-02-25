@@ -50,11 +50,14 @@ class Chat:
                             text=" " * 4 + msg["text"]))
                         new_msgs[-1].config(
                             anchor=tk.W,
-                            compound=tk.LEFT,
-                            image=self.usr_pics[msg["user"]],
                             bg="#222",
                             fg="#ccc"
                         )
+                        if msg["show_pfp"]:
+                            new_msgs[-1].config(
+                                compound=tk.LEFT,
+                                image=self.usr_pics[msg["user"]]
+                            )
                         new_msgs[-1].item_id = msg["item_id"]
                         new_msgs[-1].thread_id = self.threadId
                         new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk

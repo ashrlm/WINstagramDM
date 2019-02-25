@@ -77,24 +77,26 @@ class User: #Setup custom user class
         for item in thread["items"]:
             type = item["item_type"]
             # TODO: Add new messages in this order: image, link, profile
-            # TODO: Add show_pfp attr to determine whether or not to show
             if type == "text":
                 items.append({"user"    : item["user_id"],
                               "text"    : item["text"],
                               "time"    : item["timestamp"],
-                              "item_id" : item["item_id"]})
+                              "item_id" : item["item_id"],
+                              "show_pfp": True})
 
             elif type == "video_call_event":
                 items.append({"user"    : item["user_id"],
                               "text"    : item["video_call_event"]["description"],
                               "time"    : item["timestamp"],
-                              "item_id" : item["item_id"]})
+                              "item_id" : item["item_id"],
+                              "show_pfp": False})
 
             else:
                 items.append({"user"    : item["user_id"],
                               "text"    : "Unsupported message type: " + item["item_type"],
                               "time"    : item["timestamp"],
-                              "item_id" : item["item_id"]})
+                              "item_id" : item["item_id"],
+                              "show_pfp": True})
 
         return items
 
