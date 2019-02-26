@@ -102,6 +102,8 @@ class App:
 
     def __init__(self):
 
+
+
         def attempt_login():
             self.root.title("WinstagramDM - Logging in")
             self.usr_name = usr_login.get()
@@ -231,7 +233,18 @@ class App:
 
     def homepage(self):
 
-        #BUG: Weird scrollbar behaviour
+        def mouse_scroll(event):
+            #Linux
+            if event.num == 4:
+                self.canvas.yview_scroll(-2, "units")
+
+            if event.num == 5:
+                self.canvas.yview_scroll(2, "units")
+
+            #Windows
+            elif event.delta in (120, -120):
+                self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
 
         def getChats():
             chats = []
@@ -349,9 +362,6 @@ class App:
         def scrollbar_update():
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
-        def mouse_scroll(event):
-            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
         #Setup window
         for item in self.root.winfo_children():
             item.destroy()
@@ -374,6 +384,8 @@ class App:
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.create_window((0,0), window=self.canvas_frame, anchor="nw")
         self.root.bind_all("<MouseWheel>", mouse_scroll)
+        self.root.bind_all("<Button-4>", mouse_scroll)
+        self.root.bind_all("<Button-5>", mouse_scroll)
         self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
         #Styling
         self.canvas_frame.config(bd=0)
@@ -524,9 +536,7 @@ class App:
 
         #TODO: Add utilisation of image caching in pfp.py
 
-        #TODO: Currently if there is an unsupported (not text) image, it will just not be shown
-        #      Instead of this, we need to A: Add support for normal pictures, and until then / for
-        #      stories, maven, etc. add a "unsupported message. Type: [MESSAGE TYPE]" message in its place
+        #TODO: Add support for other msg types
 
         def copy(event):
             self.root.clipboard_clear()
@@ -570,8 +580,6 @@ class App:
         def end_spam():
             chat.stop_spam = True
 
-        def mouse_scroll(event):
-            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
         def clear_popups(event):
             self.menu.destroy()
@@ -648,7 +656,6 @@ class App:
         self.canvas_frame.pack(fill="both", expand=True)
         self.canvas.yview_moveto(1)
         self.canvas.create_window((0, 0), window=self.canvas_frame, anchor="nw")
-        self.root.bind_all("<MouseWheel>", mouse_scroll)
         self.root.bind_all("<Configure>", lambda event: scrollbar_update)
         #Styling
         self.canvas_frame.config(bd=0)
@@ -678,3 +685,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
