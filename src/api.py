@@ -51,6 +51,10 @@ class User: #Setup custom user class
         content = json.loads(self.api.LastResponse.content)["inbox"]["threads"]
         chats = []
         for chat in content:
+            # TEMP: Temp fix for self chats (0 Users) - Fix properly
+            if len(chat["users"]) == 0:
+                continue
+
             users = []
             for user in chat["users"]:
                 users.append(user["username"])
