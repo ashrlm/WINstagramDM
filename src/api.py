@@ -51,18 +51,25 @@ class User: #Setup custom user class
         content = json.loads(self.api.LastResponse.content)["inbox"]["threads"]
         chats = []
         for chat in content:
-            # TEMP: Temp fix for self chats (0 Users) - Fix properly
+            users = []
             if len(chat["users"]) == 0:
+                self.api.searchUsername(self.name)
+                response = json.loads(json.dumps(self.api.LastJson))
+                chats.append({
+                    "thread_name": self.name,
+                    "thread_id"  : chat["thread_id"],
+                    "users"      : [self.name],
+                    "thread_icon": response["user"]["profile_pic_url"]
+                })
                 continue
 
-            users = []
             for user in chat["users"]:
                 users.append(user["username"])
 
             chats.append({
                 "thread_name": chat["thread_title"],
                 "thread_id"  : chat["thread_id"],
-                "users"      : users,
+                "users"      : [user["username"] for user in chat["users"]],
                 "thread_icon": chat["users"][0]["profile_pic_url"]
             })
 
