@@ -47,7 +47,7 @@ class Chat:
                     for msg in msgs:
                         new_msgs.append(tk.Label(
                             self.app.canvas_frame,
-                            text=" " * 4 + msg["text"]))
+                            text=msg["text"]))
                         new_msgs[-1].config(
                             anchor=tk.W,
                             bg="#222",
@@ -58,6 +58,13 @@ class Chat:
                                 compound=tk.LEFT,
                                 image=self.usr_pics[msg["user"]]
                             )
+
+                        if msg["text"] == u" \u2764\uFE0F":
+                            new_msgs[-1].config(
+                                fg="#BE1931",
+                                font=("Arial", 30)
+                            )
+
                         new_msgs[-1].item_id = msg["item_id"]
                         new_msgs[-1].thread_id = self.threadId
                         new_msgs[-1].unsendable = msg["user"] == self.app.usr_pk

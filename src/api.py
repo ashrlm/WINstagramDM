@@ -90,21 +90,28 @@ class User: #Setup custom user class
             # TODO: Add new messages in this order: image, link, profile
             if type == "text":
                 items.append({"user"    : item["user_id"],
-                              "text"    : item["text"],
+                              "text"    : " " * 4 + item["text"],
                               "time"    : item["timestamp"],
                               "item_id" : item["item_id"],
                               "show_pfp": True})
 
             elif type == "video_call_event":
                 items.append({"user"    : item["user_id"],
-                              "text"    : item["video_call_event"]["description"],
+                              "text"    : " " * 4 + item["video_call_event"]["description"],
                               "time"    : item["timestamp"],
                               "item_id" : item["item_id"],
                               "show_pfp": False})
 
+            elif type == "like":
+                items.append({"user"    : item["user_id"],
+                              "text"    : u" \u2764\uFE0F",
+                              "time"    : item["timestamp"],
+                              "item_id" : item["item_id"],
+                              "show_pfp": True})
+
             else:
                 items.append({"user"    : item["user_id"],
-                              "text"    : "Unsupported message type: " + item["item_type"],
+                              "text"    : "    Unsupported message type: " + item["item_type"],
                               "time"    : item["timestamp"],
                               "item_id" : item["item_id"],
                               "show_pfp": True})
