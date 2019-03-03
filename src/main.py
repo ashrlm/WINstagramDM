@@ -48,10 +48,13 @@ class Chat:
                         new_msgs.append(tk.Label(
                             self.app.canvas_frame,
                             text=msg["text"]))
+
                         new_msgs[-1].config(
                             anchor=tk.W,
                             bg="#222",
-                            fg="#ccc"
+                            fg="#ccc",
+                            wraplength=self.app.root.winfo_width(),
+                            justify=tk.LEFT
                         )
                         if msg["show_pfp"]:
                             new_msgs[-1].config(
@@ -591,6 +594,13 @@ class App:
         def clear_popups(event):
             self.menu.destroy()
 
+        def update_msg_wraps():
+            for widget in self.canvas_frame.winfo_children():
+                if isinstance(widget, tk.Label): #NOTE: When I convert msg widgets to frames, Update this
+                    widget.config(
+                        wraplength=self.root.winfo_width()
+                    )
+
         def popup(event):
             #Clear menu
             clear_popups(None)
@@ -667,6 +677,7 @@ class App:
         #Styling
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
+        self.root.bind("<Configure>", lambda event: update_msg_wraps())
 
         #Setup right click self.menu
         self.menu = tk.Menu(self.canvas_frame, tearoff=0) #Commands added in popup
