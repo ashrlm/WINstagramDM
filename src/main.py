@@ -7,6 +7,8 @@ import webbrowser
 import json
 import tkinter as tk
 
+import keyring
+
 import api
 import pfp
 
@@ -112,24 +114,31 @@ class App:
 
     def __init__(self):
 
-
-
-        def attempt_login():
+        def attempt_login(usrname=None, psswd_stored=None):
             self.root.title("WinstagramDM - Logging in")
-            self.usr_name = usr_login.get()
-            password = psswd.get()
-            #disable editing while logging in
-            usr_login.config(state="disabled")
-            psswd.config(state="disabled")
-            login.config(state="disabled")
 
-            self.usr = api.User(self.usr_name, password)
+            if usrname and psswd_stored:
+                self.usr = api.User(usrname, psswd_stored)
+            else:
+                self.usr_name = usr_login.get()
+                password = psswd.get()
+                self.usr = api.User(usr_login.get(), psswd.get())
+                #disable editing while logging in
+                usr_login.config(state="disabled")
+                psswd.config(state="disabled")
+                login.config(state="disabled")
 
             if self.usr.api.login():
+                try:
+                    self.password = psswd.get()
+                except NameError:
+                    pass #Autologin attempted
+
                 self.usr.api.searchUsername(self.usr_name)
                 self.usr_pk = self.usr.api.LastJson["user"]["pk"]
                 self.root.quit()
                 self.logged_in = True
+                return True
 
             else:
 
@@ -158,7 +167,6 @@ class App:
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
                 self.login_thread.daemon = True
-                return 1
 
         def clear_entry(event):
             try:
@@ -189,6 +197,12 @@ class App:
         self.root.minsize(500, 500)
         self.root.maxsize(500, 500)
         self.root.update()
+
+        if keyring.get_password("W_DM", "W_DM_USERNAME") and keyring.get_password("W_DM", "W_DM_PASSWORD"):
+            self.usr_name = keyring.get_password("W_DM", "W_DM_USERNAME")
+            if attempt_login(keyring.get_password("W_DM", "W_DM_USERNAME"),
+                             keyring.get_password("W_DM", "W_DM_PASSWORD")):
+                self.homepage()
 
         #Setup attempt_login thread
         self.login_thread = threading.Thread(target=attempt_login)
@@ -239,6 +253,10 @@ class App:
         login.place_forget()
 
         self.scroll_req = True
+        #Save login details here as they need to be set from main thread
+        keyring.set_password("W_DM", "W_DM_USERNAME", self.usr_name)
+        keyring.set_password("W_DM", "W_DM_PASSWORD", self.password)
+        del self.password
         self.homepage()
 
     def homepage(self):
