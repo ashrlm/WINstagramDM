@@ -9,6 +9,7 @@ moviepy = "*"
 instagramapi = "*"
 requests = "*"
 imageio = "*"
+keyring = "*"
 
 [dev-packages]
 
