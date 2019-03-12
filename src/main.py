@@ -115,7 +115,7 @@ class App:
     def __init__(self):
 
         def attempt_login(usrname=None, psswd_stored=None):
-            self.root.title("WinstagramDM - Logging in")
+            self.root.title("WINstagramDM - Logging in")
 
             if usrname and psswd_stored:
                 self.usr = api.User(usrname, psswd_stored)
@@ -163,7 +163,7 @@ class App:
                 except AttributeError:
                     pass
 
-                self.root.title("WinstagramDM - Login")
+                self.root.title("WINstagramDM - Login")
                 #Resetup login thread to allow rerun
                 self.login_thread = threading.Thread(target=attempt_login)
                 self.login_thread.daemon = True
@@ -191,7 +191,7 @@ class App:
         self.location = "login"
 
         self.root = tk.Tk()
-        self.root.title("WinstagramDM - Login")
+        self.root.title("WINstagramDM - Login")
         self.root.tk.call('wm', 'iconphoto', self.root._w, tk.Image("photo", file="icon.gif"))
         self.root.geometry(newGeometry=("500x500")) #Sizing
         self.root.minsize(500, 500)
@@ -395,7 +395,7 @@ class App:
             item.destroy()
 
         self.location = "homepage" #Used for checking in threads
-        self.root.title("WinstagramDM - Homepage")
+        self.root.title("WINstagramDM - Homepage")
         self.root.config(background="#000")
         self.root.maxsize(self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.root.update()
@@ -508,7 +508,7 @@ class App:
                 clear_msg_entry()
 
         self.root.after(100, try_chat)
-        self.root.title("WinstagramDM - New chat")
+        self.root.title("WINstagramDM - New chat")
         self.location = "newchat"
 
         for item in self.root.winfo_children():
@@ -541,10 +541,17 @@ class App:
             font=("Helvetica", 15)
         )
 
+        to_home = tk.Button(self.root, command=self.homepage, text="Back")
+        to_home.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 15)
+        )
 
         user_select.pack(side=tk.TOP, fill=tk.X)
         msg_entry.pack(side=tk.TOP, fill=tk.X)
         start_convo.pack(side=tk.TOP, fill=tk.X)
+        to_home.pack(side=tk.TOP, fill=tk.X)
 
         user_select.bind("<Return>", lambda event: self.check_send_thread.start())
         user_select.bind("<Key>", lambda event: clear_usr_select())
@@ -637,7 +644,7 @@ class App:
 
         self.location = "convorun"
 
-        title = "WinstagramDM - Chatting with "
+        title = "WINstagramDM - Chatting with "
         for user in users:
             title += str(user) + ", "
         title = title[:-2]
@@ -721,23 +728,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
