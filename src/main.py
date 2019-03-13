@@ -390,6 +390,11 @@ class App:
         def scrollbar_update():
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
+        def logout():
+            keyring.delete_password("W_DM", "W_DM_USERNAME")
+            keyring.delete_password("W_DM", "W_DM_PASSWORD")
+            self.__init__() #Return to login screen
+
         #Setup window
         for item in self.root.winfo_children():
             item.destroy()
@@ -415,6 +420,15 @@ class App:
         self.root.bind_all("<Button-4>", mouse_scroll)
         self.root.bind_all("<Button-5>", mouse_scroll)
         self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
+        #Logout button
+        logout_btn = tk.Button(self.root, command=logout, text="Logout")
+        logout_btn.config(
+            bg="#222",
+            fg="#ccc",
+            font=("Helvetica", 15)
+        )
+        logout_btn.pack(fill=tk.X, expand=True)
+
         #Styling
         self.canvas_frame.config(bd=0)
         self.canvas.config(bd=0)
