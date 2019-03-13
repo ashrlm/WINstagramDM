@@ -308,6 +308,20 @@ class App:
                         fg="#ccc"
                     )
 
+                    #Logout button
+                    self.pending_chats.append(tk.Button(
+                        self.canvas_frame,
+                        text=" " * 16 + "Logout & Exit",
+                        command=logout,
+                        font=("Helvetica", 12)
+                    ))
+                    self.pending_chats[-1].config(
+                        bd=1,
+                        anchor=tk.W,
+                        bg="#222",
+                        fg="#ccc"
+                    )
+
                 if new_chats != chats:
 
                     for chat in new_chats:
@@ -393,7 +407,7 @@ class App:
         def logout():
             keyring.delete_password("W_DM", "W_DM_USERNAME")
             keyring.delete_password("W_DM", "W_DM_PASSWORD")
-            self.__init__() #Return to login screen
+            self.root.destroy()
 
         #Setup window
         for item in self.root.winfo_children():
@@ -420,14 +434,6 @@ class App:
         self.root.bind_all("<Button-4>", mouse_scroll)
         self.root.bind_all("<Button-5>", mouse_scroll)
         self.canvas_frame.bind("<Configure>", lambda event: scrollbar_update)
-        #Logout button
-        logout_btn = tk.Button(self.root, command=logout, text="Logout")
-        logout_btn.config(
-            bg="#222",
-            fg="#ccc",
-            font=("Helvetica", 15)
-        )
-        logout_btn.pack(fill=tk.X, expand=True)
 
         #Styling
         self.canvas_frame.config(bd=0)
