@@ -11,7 +11,7 @@ class User: #Setup custom user class
     def __init__(self, usr_name, password):
         self.name = usr_name
         self.api = InstagramAPI(usr_name, password)
-
+        
         InstagramAPI.USER_AGENT = "Instagram 99.0.0.19.93 Android (5000/5000.0; 1dpi; 1x1; noname; noname; noname; noname)"
         #Setup custom UA to ensure reading dms allowed
 
